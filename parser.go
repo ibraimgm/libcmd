@@ -12,12 +12,14 @@ type cfgEntry struct {
 	help         string
 	defaultValue interface{}
 	isBool       bool
+	isStr        bool
 	valuePtr     interface{}
 }
 
 // CfgParser is a parser that can load configurations from the command line or the environment
 // variables.
 type CfgParser struct {
+	args    []string
 	entries []*cfgEntry
 }
 
@@ -38,11 +40,13 @@ func (cfg *CfgParser) ParseArgs(args []string) error {
 
 		isLong := strings.HasPrefix(arg, "--")
 		isShort := !isLong && strings.HasPrefix(arg, "-")
-		var isLongWithValue bool
+		var isLongSplit bool
 
-		// is not a param
+		// is not a param - break the parsing and collect
+		// the rest of the list
 		if !isShort && !isLong {
-			return fmt.Errorf("unexpected argument: %s", arg)
+			cfg.args = args[i:]
+			return nil
 		}
 
 		// long param might use '='
@@ -51,7 +55,7 @@ func (cfg *CfgParser) ParseArgs(args []string) error {
 			if len(splitted) == 2 {
 				arg = splitted[0]
 				val = splitted[1]
-				isLongWithValue = true
+				isLongSplit = true
 			}
 		}
 
@@ -82,8 +86,14 @@ func (cfg *CfgParser) ParseArgs(args []string) error {
 			val = "true"
 		}
 
+		// if this is long, with and empty '=' and it is not a string,
+		// we lack a proper value
+		if isLongSplit && val == "" && !entry.isStr {
+			return fmt.Errorf("no value for argument: %s", arg)
+		}
+
 		// short or a long without value, must look the next argument
-		if (isShort || !isLongWithValue) && val == "" {
+		if (isShort || !isLongSplit) && val == "" {
 			if i+1 == len(args) {
 				return fmt.Errorf("no value for argument: %s", arg)
 			}
@@ -118,6 +128,11 @@ func (cfg *CfgParser) ParseArgs(args []string) error {
 	return nil
 }
 
+// Args returns the remaining non-parsed command line arguments
+func (cfg *CfgParser) Args() []string {
+	return cfg.args
+}
+
 // OptBool creates a new parser setting to load a bool value from the command line only.
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptBool(long, short string, defaultValue bool, help string) *bool {
@@ -138,6 +153,6 @@ func (cfg *CfgParser) OptInt(long, short string, defaultValue int, help string) 
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptString(long, short, defaultValue, help string) *string {
 	val := new(string)
-	cfg.entries = append(cfg.entries, &cfgEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	cfg.entries = append(cfg.entries, &cfgEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isStr: true})
 	return val
 }
