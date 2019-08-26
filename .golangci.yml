@@ -1,0 +1,60 @@
+run:
+  modules-download-mode: readonly
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  misspell:
+    locale: US
+  unused:
+    check-exported: false
+  goimports:
+    local-prefixes: github.com/ibraimgm/libcfg
+
+linters:
+  fast: true
+  enable:
+    - goimports
+    - staticcheck
+    - unused
+    - scopelint
+    - gosimple
+    - gosec
+    - govet
+    - golint
+    - misspell
+
+issues:
+  exclude-rules:
+    # goimports: We should care only when changing files
+    - text: File is not `goimports`-ed
+      linters:
+        - goimports
+
+    # errcheck: Almost all programs ignore errors on these functions and in most cases it's ok
+    - text: Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
+      linters:
+        - errcheck
+
+    # staticcheck: Developers tend to write in C-style with an explicit 'break' in a 'switch', so it's ok to ignore
+    - text: ineffective break statement. Did you mean to break out of the outer loop
+      linters:
+        - staticcheck
+
+    # gosec: Too many issues in popular repos
+    - text: (Expect directory permissions to be 0750 or less|Expect file permissions to be 0600 or less)
+      linters:
+        - gosec
+
+    # gosec: Duplicated errcheck checks
+    - text: G104
+      linters:
+        - gosec
+
+    # gosec: False positive is triggered by 'src, err := ioutil.ReadFile(filename)'
+    - text: Potential file inclusion via variable
+      linters:
+        - gosec
+
+  exclude-use-default: false
+  new: false
