@@ -8,6 +8,8 @@ linters-settings:
     locale: US
   unused:
     check-exported: false
+  gocyclo:
+    min-complexity: 10
   goimports:
     local-prefixes: github.com/ibraimgm/libcfg
 
@@ -22,6 +24,7 @@ linters:
     - gosec
     - govet
     - golint
+    - gocyclo
     - misspell
 
 issues:
