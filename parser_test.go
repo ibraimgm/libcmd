@@ -16,7 +16,6 @@ func TestParseCmdArgs(t *testing.T) {
 		args    []string
 	}{
 		{cmd: []string{}},
-		{cmd: []string{}},
 		{cmd: []string{"-b", "-i", "5", "-s", "foo"}, abool: true, aint: 5, astring: "foo"},
 		{cmd: []string{"--abool", "--aint", "5", "--astring", "foo"}, abool: true, aint: 5, astring: "foo"},
 		{cmd: []string{"--aint=5", "--astring=foo"}, aint: 5, astring: "foo"},
@@ -27,7 +26,9 @@ func TestParseCmdArgs(t *testing.T) {
 		{cmd: []string{"foo", "bar"}, args: []string{"foo", "bar"}},
 		{cmd: []string{"foo", "-i", "5"}, args: []string{"foo", "-i", "5"}},
 		{cmd: []string{"-b", "--no-abool=true"}},
+		{cmd: []string{"--no-abool=false"}, abool: true},
 		{cmd: []string{"-s", "foo", "--astring="}},
+		{cmd: []string{"--astring", "--aint", "5"}, astring: "--aint", args: []string{"5"}},
 	}
 
 	for i, test := range tests {

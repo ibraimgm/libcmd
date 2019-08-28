@@ -6,7 +6,69 @@ import (
 	"strings"
 )
 
-type cfgEntry struct {
+// helper struct to determine what kind of argument was
+// passesd (short, long, long with value, etc.)
+type optArg struct {
+	name    string
+	value   string
+	isShort bool
+	isLong  bool
+	isNeg   bool
+	isEq    bool
+}
+
+func parseOptArg(argstr string) *optArg {
+	var arg optArg
+
+	arg.name = argstr
+	arg.isLong = strings.HasPrefix(argstr, "--")
+	arg.isNeg = strings.HasPrefix(argstr, "--no-")
+	arg.isShort = !arg.isLong && strings.HasPrefix(argstr, "-")
+
+	if !arg.isLong && !arg.isShort {
+		return nil
+	}
+
+	if arg.isLong {
+		splitted := strings.Split(arg.name, "=")
+
+		if len(splitted) == 2 {
+			arg.name = splitted[0]
+			arg.value = splitted[1]
+			arg.isEq = true
+		}
+	}
+
+	return &arg
+}
+
+func (arg *optArg) setBool(value *bool) error {
+	bval, err := strconv.ParseBool(arg.value)
+	if err != nil {
+		return fmt.Errorf("'%v' is not a valid boolean value for argument '%s'", arg.value, arg.name)
+	}
+	*value = bval
+
+	if arg.isNeg && arg.isEq {
+		*value = !*value
+	}
+
+	return nil
+}
+
+func (arg *optArg) setInt(value *int) error {
+	ival, err := strconv.ParseInt(arg.value, 10, 64)
+	if err != nil {
+		return fmt.Errorf("'%v' is not a valid int value for argument '%s'", arg.value, arg.name)
+	}
+	*value = int(ival)
+
+	return nil
+}
+
+// inner struct to hold the values of each command line
+// entry. Holds the definition provided by the user.
+type optEntry struct {
 	long         string
 	short        string
 	help         string
@@ -16,18 +78,89 @@ type cfgEntry struct {
 	valuePtr     interface{}
 }
 
+// try to 'fix' the options that have a 'natural' default
+// value in command line. Examples:
+// -b        : assumes 'true' in case of a boolean entry
+// --bool    : same as above
+// --no-bool : same as above, but assumes 'false'
+func (entry *optEntry) fillAutoValue(arg *optArg) {
+	if arg.value != "" {
+		return
+	}
+
+	switch {
+	case entry.isBool && arg.isNeg:
+		arg.value = "false"
+	case entry.isBool:
+		arg.value = "true"
+	}
+}
+
+// sets this entry value with the value from command-line
+func (entry *optEntry) setValue(arg *optArg) error {
+	// the option '--string=' is the only case where
+	// an empty value should be accepted
+	if arg.value == "" && !(entry.isStr && arg.isEq) {
+		return fmt.Errorf("no value for argument: %s", arg.name)
+	}
+
+	switch v := entry.valuePtr.(type) {
+	case *bool:
+		return arg.setBool(v)
+
+	case *int:
+		return arg.setInt(v)
+
+	case *string:
+		*v = arg.value
+
+	default:
+		return fmt.Errorf("unrecognized entry type: %T", entry.valuePtr)
+	}
+
+	return nil
+}
+
 // CfgParser is a parser that can load configurations from the command line or the environment
 // variables.
 type CfgParser struct {
-	args    []string
-	entries []*cfgEntry
+	args       []string
+	optentries []*optEntry
+	shortopt   map[string]*optEntry
+	longopt    map[string]*optEntry
 }
 
 // NewParser returns a new CfgParser, ready to be used.
 func NewParser() *CfgParser {
 	return &CfgParser{
-		entries: make([]*cfgEntry, 0),
+		optentries: make([]*optEntry, 0),
+		shortopt:   make(map[string]*optEntry),
+		longopt:    make(map[string]*optEntry),
 	}
+}
+
+func (cfg *CfgParser) addOpt(entry *optEntry) {
+	cfg.optentries = append(cfg.optentries, entry)
+
+	if entry.short != "" {
+		cfg.shortopt["-"+entry.short] = entry
+	}
+
+	if entry.long != "" {
+		cfg.longopt["--"+entry.long] = entry
+
+		if _, ok := entry.valuePtr.(*bool); ok {
+			cfg.longopt["--no-"+entry.long] = entry
+		}
+	}
+}
+
+func (cfg *CfgParser) findEntry(entryName string) *optEntry {
+	if entry, ok := cfg.shortopt[entryName]; ok {
+		return entry
+	}
+
+	return cfg.longopt[entryName]
 }
 
 // ParseArgs parsers the arguments in args and load the configuration
@@ -35,93 +168,41 @@ func NewParser() *CfgParser {
 // Note that args must not include the program name
 func (cfg *CfgParser) ParseArgs(args []string) error {
 	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		var val string
 
-		isLong := strings.HasPrefix(arg, "--")
-		isShort := !isLong && strings.HasPrefix(arg, "-")
-		var isLongSplit bool
+		// parse the current argument
+		arg := parseOptArg(args[i])
 
-		// is not a param - break the parsing and collect
+		// if it is not a param, break the parsing and collect
 		// the rest of the list
-		if !isShort && !isLong {
+		if arg == nil {
 			cfg.args = args[i:]
 			return nil
 		}
 
-		// long param might use '='
-		if isLong {
-			splitted := strings.Split(arg, "=")
-			if len(splitted) == 2 {
-				arg = splitted[0]
-				val = splitted[1]
-				isLongSplit = true
-			}
-		}
-
-		// find the entry
-		var entry *cfgEntry
-		for j := 0; j < len(cfg.entries); j++ {
-			short := "-" + cfg.entries[j].short
-			long := "--" + cfg.entries[j].long
-			nolong := "--no-" + cfg.entries[j].long
-
-			if short == arg || long == arg {
-				entry = cfg.entries[j]
-				break
-			}
-
-			if cfg.entries[j].isBool && nolong == arg {
-				entry = cfg.entries[j]
-				val = "false"
-				break
-			}
-		}
-
+		// find the entry.
+		// if no entry exists, this argument is unknown
+		entry := cfg.findEntry(arg.name)
 		if entry == nil {
-			return fmt.Errorf("unknown argument: %s", arg)
+			return fmt.Errorf("unknown argument: %s", arg.name)
 		}
 
-		if entry.isBool && val == "" {
-			val = "true"
-		}
+		// some argument types have autmatic values in certain cases
+		// fill them in, if necessary
+		entry.fillAutoValue(arg)
 
-		// if this is long, with and empty '=' and it is not a string,
-		// we lack a proper value
-		if isLongSplit && val == "" && !entry.isStr {
-			return fmt.Errorf("no value for argument: %s", arg)
-		}
-
-		// short or a long without value, must look the next argument
-		if (isShort || !isLongSplit) && val == "" {
+		// check if we need to look at the next argument
+		// long params with '=' should not be considered
+		if !arg.isEq && arg.value == "" {
 			if i+1 == len(args) {
-				return fmt.Errorf("no value for argument: %s", arg)
+				return fmt.Errorf("no value for argument: %s", arg.name)
 			}
 
-			val = args[i+1]
+			arg.value = args[i+1]
 			i++
 		}
 
-		switch v := entry.valuePtr.(type) {
-		case *bool:
-			bval, err := strconv.ParseBool(val)
-			if err != nil {
-				return fmt.Errorf("'%v' is not a valid boolean value for argument '%s'", val, arg)
-			}
-			*v = bval
-
-		case *int:
-			ival, err := strconv.ParseInt(val, 10, 64)
-			if err != nil {
-				return fmt.Errorf("'%v' is not a valid int value for argument '%s'", val, arg)
-			}
-			*v = int(ival)
-
-		case *string:
-			*v = val
-
-		default:
-			return fmt.Errorf("unrecognized entry type: %T", entry.valuePtr)
+		if err := entry.setValue(arg); err != nil {
+			return err
 		}
 	}
 
@@ -137,7 +218,7 @@ func (cfg *CfgParser) Args() []string {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptBool(long, short string, defaultValue bool, help string) *bool {
 	val := new(bool)
-	cfg.entries = append(cfg.entries, &cfgEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isBool: true})
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isBool: true})
 	return val
 }
 
@@ -145,7 +226,7 @@ func (cfg *CfgParser) OptBool(long, short string, defaultValue bool, help string
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptInt(long, short string, defaultValue int, help string) *int {
 	val := new(int)
-	cfg.entries = append(cfg.entries, &cfgEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
 	return val
 }
 
@@ -153,6 +234,6 @@ func (cfg *CfgParser) OptInt(long, short string, defaultValue int, help string) 
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptString(long, short, defaultValue, help string) *string {
 	val := new(string)
-	cfg.entries = append(cfg.entries, &cfgEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isStr: true})
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isStr: true})
 	return val
 }
