@@ -44,13 +44,10 @@ func parseOptArg(argstr string) *optArg {
 // inner struct to hold the values of each command line
 // entry. Holds the definition provided by the user.
 type optEntry struct {
-	long         string
-	short        string
-	help         string
-	defaultValue interface{}
-	isBool       bool
-	isStr        bool
-	valuePtr     interface{}
+	long  string
+	short string
+	help  string
+	val   *variant
 }
 
 // try to 'fix' the options that have a 'natural' default
@@ -64,50 +61,28 @@ func (entry *optEntry) fillAutoValue(arg *optArg) {
 	}
 
 	switch {
-	case entry.isBool && arg.isNeg:
+	case entry.val.isBool && arg.isNeg:
 		arg.value = "false"
-	case entry.isBool:
+	case entry.val.isBool:
 		arg.value = "true"
 	}
 }
 
 // sets this entry value with the value from command-line
-func (entry *optEntry) setValue(arg *optArg) error { //nolint: gocyclo
+func (entry *optEntry) setValue(arg *optArg) error {
 	// the option '--string=' is the only case where
 	// an empty value should be accepted
-	if arg.value == "" && !(entry.isStr && arg.isEq) {
+	if arg.value == "" && !(entry.val.isStr && arg.isEq) {
 		return fmt.Errorf("no value for argument: %s", arg.name)
 	}
 
-	switch v := entry.valuePtr.(type) {
-	case *bool:
-		return wrapOptErr(arg.name, setBool(v, arg.value, arg.isNeg && arg.isEq))
-	case *int:
-		return wrapOptErr(arg.name, setInt(v, arg.value))
-	case *int8:
-		return wrapOptErr(arg.name, setInt8(v, arg.value))
-	case *int16:
-		return wrapOptErr(arg.name, setInt16(v, arg.value))
-	case *int32:
-		return wrapOptErr(arg.name, setInt32(v, arg.value))
-	case *int64:
-		return wrapOptErr(arg.name, setInt64(v, arg.value))
-	case *uint:
-		return wrapOptErr(arg.name, setUint(v, arg.value))
-	case *uint8:
-		return wrapOptErr(arg.name, setUint8(v, arg.value))
-	case *uint16:
-		return wrapOptErr(arg.name, setUint16(v, arg.value))
-	case *uint32:
-		return wrapOptErr(arg.name, setUint32(v, arg.value))
-	case *uint64:
-		return wrapOptErr(arg.name, setUint64(v, arg.value))
+	if err := entry.val.setValueStr(arg.value); err != nil {
+		return fmt.Errorf("error parsing argument '%s': %v", arg.name, err)
+	}
 
-	case *string:
-		*v = arg.value
-
-	default:
-		return fmt.Errorf("unrecognized entry type: %T", entry.valuePtr)
+	if entry.val.isBool && arg.isNeg && arg.isEq {
+		b, _ := entry.val.ptrValue.(*bool)
+		*b = !*b
 	}
 
 	return nil
