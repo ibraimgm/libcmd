@@ -2,124 +2,7 @@ package libcfg
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 )
-
-// helper struct to determine what kind of argument was
-// passesd (short, long, long with value, etc.)
-type optArg struct {
-	name    string
-	value   string
-	isShort bool
-	isLong  bool
-	isNeg   bool
-	isEq    bool
-}
-
-func parseOptArg(argstr string) *optArg {
-	var arg optArg
-
-	arg.name = argstr
-	arg.isLong = strings.HasPrefix(argstr, "--")
-	arg.isNeg = strings.HasPrefix(argstr, "--no-")
-	arg.isShort = !arg.isLong && strings.HasPrefix(argstr, "-")
-
-	if !arg.isLong && !arg.isShort {
-		return nil
-	}
-
-	if arg.isLong {
-		splitted := strings.Split(arg.name, "=")
-
-		if len(splitted) == 2 {
-			arg.name = splitted[0]
-			arg.value = splitted[1]
-			arg.isEq = true
-		}
-	}
-
-	return &arg
-}
-
-func (arg *optArg) setBool(value *bool) error {
-	bval, err := strconv.ParseBool(arg.value)
-	if err != nil {
-		return fmt.Errorf("'%v' is not a valid boolean value for argument '%s'", arg.value, arg.name)
-	}
-	*value = bval
-
-	if arg.isNeg && arg.isEq {
-		*value = !*value
-	}
-
-	return nil
-}
-
-func (arg *optArg) setInt(value *int) error {
-	ival, err := strconv.ParseInt(arg.value, 10, 64)
-	if err != nil {
-		return fmt.Errorf("'%v' is not a valid int value for argument '%s'", arg.value, arg.name)
-	}
-	*value = int(ival)
-
-	return nil
-}
-
-// inner struct to hold the values of each command line
-// entry. Holds the definition provided by the user.
-type optEntry struct {
-	long         string
-	short        string
-	help         string
-	defaultValue interface{}
-	isBool       bool
-	isStr        bool
-	valuePtr     interface{}
-}
-
-// try to 'fix' the options that have a 'natural' default
-// value in command line. Examples:
-// -b        : assumes 'true' in case of a boolean entry
-// --bool    : same as above
-// --no-bool : same as above, but assumes 'false'
-func (entry *optEntry) fillAutoValue(arg *optArg) {
-	if arg.value != "" {
-		return
-	}
-
-	switch {
-	case entry.isBool && arg.isNeg:
-		arg.value = "false"
-	case entry.isBool:
-		arg.value = "true"
-	}
-}
-
-// sets this entry value with the value from command-line
-func (entry *optEntry) setValue(arg *optArg) error {
-	// the option '--string=' is the only case where
-	// an empty value should be accepted
-	if arg.value == "" && !(entry.isStr && arg.isEq) {
-		return fmt.Errorf("no value for argument: %s", arg.name)
-	}
-
-	switch v := entry.valuePtr.(type) {
-	case *bool:
-		return arg.setBool(v)
-
-	case *int:
-		return arg.setInt(v)
-
-	case *string:
-		*v = arg.value
-
-	default:
-		return fmt.Errorf("unrecognized entry type: %T", entry.valuePtr)
-	}
-
-	return nil
-}
 
 // CfgParser is a parser that can load configurations from the command line or the environment
 // variables.
@@ -155,7 +38,7 @@ func (cfg *CfgParser) addOpt(entry *optEntry) {
 	}
 }
 
-func (cfg *CfgParser) findEntry(entryName string) *optEntry {
+func (cfg *CfgParser) findOpt(entryName string) *optEntry {
 	if entry, ok := cfg.shortopt[entryName]; ok {
 		return entry
 	}
@@ -181,7 +64,7 @@ func (cfg *CfgParser) ParseArgs(args []string) error {
 
 		// find the entry.
 		// if no entry exists, this argument is unknown
-		entry := cfg.findEntry(arg.name)
+		entry := cfg.findOpt(arg.name)
 		if entry == nil {
 			return fmt.Errorf("unknown argument: %s", arg.name)
 		}
