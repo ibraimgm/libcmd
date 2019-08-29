@@ -97,6 +97,14 @@ func (cfg *CfgParser) Args() []string {
 	return cfg.args
 }
 
+// OptString creates a new parser setting to load a string value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptString(long, short, defaultValue, help string) *string {
+	val := new(string)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isStr: true})
+	return val
+}
+
 // OptBool creates a new parser setting to load a bool value from the command line only.
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptBool(long, short string, defaultValue bool, help string) *bool {
@@ -113,10 +121,74 @@ func (cfg *CfgParser) OptInt(long, short string, defaultValue int, help string) 
 	return val
 }
 
-// OptString creates a new parser setting to load a string value from the command line only
+// OptInt8 creates a new parser setting to load a int8 value from the command line only
 // After parsing, the value will be available on the returned pointer.
-func (cfg *CfgParser) OptString(long, short, defaultValue, help string) *string {
-	val := new(string)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val, isStr: true})
+func (cfg *CfgParser) OptInt8(long, short string, defaultValue int8, help string) *int8 {
+	val := new(int8)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptInt16 creates a new parser setting to load a int value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptInt16(long, short string, defaultValue int16, help string) *int16 {
+	val := new(int16)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptInt32 creates a new parser setting to load a int32 value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptInt32(long, short string, defaultValue int32, help string) *int32 {
+	val := new(int32)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptInt64 creates a new parser setting to load a int64 value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptInt64(long, short string, defaultValue int64, help string) *int64 {
+	val := new(int64)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptUint creates a new parser setting to load a uint value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptUint(long, short string, defaultValue uint, help string) *uint {
+	val := new(uint)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptUint8 creates a new parser setting to load a uint8 value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptUint8(long, short string, defaultValue uint8, help string) *uint8 {
+	val := new(uint8)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptUint16 creates a new parser setting to load a uint16 value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptUint16(long, short string, defaultValue uint16, help string) *uint16 {
+	val := new(uint16)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptUint32 creates a new parser setting to load a uint32 value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptUint32(long, short string, defaultValue uint32, help string) *uint32 {
+	val := new(uint32)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
+	return val
+}
+
+// OptUint64 creates a new parser setting to load a uint64 value from the command line only
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptUint64(long, short string, defaultValue uint64, help string) *uint64 {
+	val := new(uint64)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, defaultValue: defaultValue, valuePtr: val})
 	return val
 }

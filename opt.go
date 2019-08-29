@@ -72,7 +72,7 @@ func (entry *optEntry) fillAutoValue(arg *optArg) {
 }
 
 // sets this entry value with the value from command-line
-func (entry *optEntry) setValue(arg *optArg) error {
+func (entry *optEntry) setValue(arg *optArg) error { //nolint: gocyclo
 	// the option '--string=' is the only case where
 	// an empty value should be accepted
 	if arg.value == "" && !(entry.isStr && arg.isEq) {
@@ -82,9 +82,26 @@ func (entry *optEntry) setValue(arg *optArg) error {
 	switch v := entry.valuePtr.(type) {
 	case *bool:
 		return wrapOptErr(arg.name, setBool(v, arg.value, arg.isNeg && arg.isEq))
-
 	case *int:
 		return wrapOptErr(arg.name, setInt(v, arg.value))
+	case *int8:
+		return wrapOptErr(arg.name, setInt8(v, arg.value))
+	case *int16:
+		return wrapOptErr(arg.name, setInt16(v, arg.value))
+	case *int32:
+		return wrapOptErr(arg.name, setInt32(v, arg.value))
+	case *int64:
+		return wrapOptErr(arg.name, setInt64(v, arg.value))
+	case *uint:
+		return wrapOptErr(arg.name, setUint(v, arg.value))
+	case *uint8:
+		return wrapOptErr(arg.name, setUint8(v, arg.value))
+	case *uint16:
+		return wrapOptErr(arg.name, setUint16(v, arg.value))
+	case *uint32:
+		return wrapOptErr(arg.name, setUint32(v, arg.value))
+	case *uint64:
+		return wrapOptErr(arg.name, setUint64(v, arg.value))
 
 	case *string:
 		*v = arg.value
