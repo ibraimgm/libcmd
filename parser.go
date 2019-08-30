@@ -46,10 +46,24 @@ func (cfg *CfgParser) findOpt(entryName string) *optEntry {
 	return cfg.longopt[entryName]
 }
 
-// ParseArgs parsers the arguments in args and load the configuration
-// values according to the settings of the current parser.
+// RunArgs loads all the configuration values according to
+// the settingsof the current parser, but assumes the values
+// passed by args as command line arguments.
 // Note that args must not include the program name
-func (cfg *CfgParser) ParseArgs(args []string) error {
+func (cfg *CfgParser) RunArgs(args []string) error {
+	if err := cfg.doParse(args); err != nil {
+		return err
+	}
+
+	for i := range cfg.optentries {
+		cfg.optentries[i].val.useDefault()
+	}
+
+	return nil
+}
+
+// parse all command-line arguments
+func (cfg *CfgParser) doParse(args []string) error {
 	for i := 0; i < len(args); i++ {
 
 		// parse the current argument

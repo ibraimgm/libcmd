@@ -76,7 +76,7 @@ func (entry *optEntry) setValue(arg *optArg) error {
 		return fmt.Errorf("no value for argument: %s", arg.name)
 	}
 
-	if err := entry.val.setValueStr(arg.value); err != nil {
+	if err := entry.val.setValue(arg.value); err != nil {
 		return fmt.Errorf("error parsing argument '%s': %v", arg.name, err)
 	}
 
