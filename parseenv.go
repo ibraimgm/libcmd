@@ -18,6 +18,7 @@ func (cfg *CfgParser) loadFromEnv() {
 		entry := cfg.enventries[i]
 
 		cfg.findEnvValue(entry)
+		entry.val.useDefault()
 	}
 }
 
@@ -31,7 +32,7 @@ func (cfg *CfgParser) findEnvValue(entry *envEntry) {
 		}
 
 		switch {
-		case ok && value != "":
+		case ok && (value != ""  || entry.val.isStr):
 			entry.val.setValue(value) //nolint: errheck
 		case ok && value == "":
 			entry.val.unsetValue()
