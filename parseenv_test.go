@@ -339,6 +339,9 @@ func TestEnvIntLimit(t *testing.T) {
 		c := cfg.EnvInt32(0, "C")
 		d := cfg.EnvInt64(0, "D")
 
+		i := i       //pin
+		test := test //pin
+
 		withEnv(test.env, func() {
 			if err := cfg.RunEnv(); err != nil {
 				t.Errorf("Case %d, loading env: %v", i, err)
@@ -385,6 +388,9 @@ func TestEnvUintLimit(t *testing.T) {
 		b := cfg.EnvUint16(0, "B")
 		c := cfg.EnvUint32(0, "C")
 		d := cfg.EnvUint64(0, "D")
+
+		i := i       //pin
+		test := test //pin
 
 		withEnv(test.env, func() {
 			if err := cfg.RunEnv(); err != nil {
@@ -710,6 +716,9 @@ func TestEnvSpecialCases(t *testing.T) {
 
 		a := cfg.EnvString("", "A")
 
+		i := i       //pin
+		test := test //pin
+
 		withFileEnv(test.env, func(filename string) {
 			if err := cfg.UseFile(filename); err != nil {
 				t.Errorf("Case %d, error loading file: %v", i, err)
@@ -745,6 +754,9 @@ func TestParseEnvMultipleFiles(t *testing.T) {
 		cfg := libcfg.NewParser()
 
 		a := cfg.EnvString("default", "A1", "A2", "A3")
+
+		i := i       //pin
+		test := test //pin
 
 		withFileEnv(test.file1, func(file1 string) {
 			withFileEnv(test.file2, func(file2 string) {
@@ -782,10 +794,16 @@ func TestParseEnvFileOnly(t *testing.T) {
 
 		a := cfg.EnvString("default", "A1", "A2", "A3")
 
+		i := i       //pin
+		test := test //pin
+
 		withEnv(test.env, func() {
 			withFileEnv(test.file, func(file string) {
 				cfg.UseEnv(false)
-				cfg.UseFile(file)
+
+				if err := cfg.UseFile(file); err != nil {
+					t.Errorf("Case %d, error loading env from file: %v", i, err)
+				}
 
 				if err := cfg.RunEnv(); err != nil {
 					t.Errorf("Case %d, error loading env: %v", i, err)
