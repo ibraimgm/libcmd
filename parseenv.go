@@ -88,7 +88,9 @@ func (cfg *CfgParser) UseFile(envfile string) error {
 // Errors are ignored, so this funcion is useful to load a list of files when is acceptable
 // that some of them might not exist
 func (cfg *CfgParser) UseFiles(envfiles ...string) {
-
+	for _, file := range envfiles {
+		cfg.UseFile(file)
+	}
 }
 
 // EnvStringVar creates a new parser setting to load a string value from the
