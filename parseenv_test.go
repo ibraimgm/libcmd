@@ -3,7 +3,9 @@ package libcfg_test
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/ibraimgm/libcfg"
@@ -310,6 +312,100 @@ func TestParseEnvDefault(t *testing.T) {
 
 			if *astring != test.astring {
 				t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.astring, *astring)
+			}
+		})
+	}
+}
+
+func TestEnvIntLimit(t *testing.T) {
+	tests := []struct {
+		env map[string]string
+		a   int8
+		b   int16
+		c   int32
+		d   int64
+	}{
+		{env: map[string]string{"A": strconv.FormatInt(math.MaxInt8, 10)}, a: math.MaxInt8},
+		{env: map[string]string{"B": strconv.FormatInt(math.MaxInt16, 10)}, b: math.MaxInt16},
+		{env: map[string]string{"C": strconv.FormatInt(math.MaxInt32, 10)}, c: math.MaxInt32},
+		{env: map[string]string{"D": strconv.FormatInt(math.MaxInt64, 10)}, d: math.MaxInt64},
+	}
+
+	for i, test := range tests {
+		cfg := libcfg.NewParser()
+
+		a := cfg.EnvInt8(0, "A")
+		b := cfg.EnvInt16(0, "B")
+		c := cfg.EnvInt32(0, "C")
+		d := cfg.EnvInt64(0, "D")
+
+		withEnv(test.env, func() {
+			if err := cfg.RunEnv(); err != nil {
+				t.Errorf("Case %d, loading env: %v", i, err)
+				return
+			}
+
+			if *a != test.a {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.a, *a)
+			}
+
+			if *b != test.b {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.b, *b)
+			}
+
+			if *c != test.c {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.c, *c)
+			}
+
+			if *d != test.d {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.d, *d)
+			}
+		})
+	}
+}
+
+func TestEnvUintLimit(t *testing.T) {
+	tests := []struct {
+		env map[string]string
+		a   uint8
+		b   uint16
+		c   uint32
+		d   uint64
+	}{
+		{env: map[string]string{"A": strconv.FormatUint(math.MaxUint8, 10)}, a: math.MaxUint8},
+		{env: map[string]string{"B": strconv.FormatUint(math.MaxUint16, 10)}, b: math.MaxUint16},
+		{env: map[string]string{"C": strconv.FormatUint(math.MaxUint32, 10)}, c: math.MaxUint32},
+		{env: map[string]string{"D": strconv.FormatUint(math.MaxUint64, 10)}, d: math.MaxUint64},
+	}
+
+	for i, test := range tests {
+		cfg := libcfg.NewParser()
+
+		a := cfg.EnvUint8(0, "A")
+		b := cfg.EnvUint16(0, "B")
+		c := cfg.EnvUint32(0, "C")
+		d := cfg.EnvUint64(0, "D")
+
+		withEnv(test.env, func() {
+			if err := cfg.RunEnv(); err != nil {
+				t.Errorf("Case %d, loading env: %v", i, err)
+				return
+			}
+
+			if *a != test.a {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.a, *a)
+			}
+
+			if *b != test.b {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.b, *b)
+			}
+
+			if *c != test.c {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.c, *c)
+			}
+
+			if *d != test.d {
+				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.d, *d)
 			}
 		})
 	}

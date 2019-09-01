@@ -170,7 +170,7 @@ func (cfg *CfgParser) EnvUint64Var(target *uint64, defaultValue uint64, variable
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvString(defaultValue string, variables ...string) *string {
 	target := new(string)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue, isStr: true}, variables)
+	cfg.EnvStringVar(target, defaultValue, variables...)
 	return target
 }
 
@@ -179,7 +179,7 @@ func (cfg *CfgParser) EnvString(defaultValue string, variables ...string) *strin
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvBool(defaultValue bool, variables ...string) *bool {
 	target := new(bool)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue, isBool: true}, variables)
+	cfg.EnvBoolVar(target, defaultValue, variables...)
 	return target
 }
 
@@ -188,7 +188,7 @@ func (cfg *CfgParser) EnvBool(defaultValue bool, variables ...string) *bool {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvInt(defaultValue int, variables ...string) *int {
 	target := new(int)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvIntVar(target, defaultValue, variables...)
 	return target
 }
 
@@ -197,7 +197,7 @@ func (cfg *CfgParser) EnvInt(defaultValue int, variables ...string) *int {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvInt8(defaultValue int8, variables ...string) *int8 {
 	target := new(int8)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvInt8Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -206,7 +206,7 @@ func (cfg *CfgParser) EnvInt8(defaultValue int8, variables ...string) *int8 {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvInt16(defaultValue int16, variables ...string) *int16 {
 	target := new(int16)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvInt16Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -215,7 +215,7 @@ func (cfg *CfgParser) EnvInt16(defaultValue int16, variables ...string) *int16 {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvInt32(defaultValue int32, variables ...string) *int32 {
 	target := new(int32)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvInt32Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -224,7 +224,7 @@ func (cfg *CfgParser) EnvInt32(defaultValue int32, variables ...string) *int32 {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvInt64(defaultValue int64, variables ...string) *int64 {
 	target := new(int64)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvInt64Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -233,7 +233,7 @@ func (cfg *CfgParser) EnvInt64(defaultValue int64, variables ...string) *int64 {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvUint(defaultValue uint, variables ...string) *uint {
 	target := new(uint)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvUintVar(target, defaultValue, variables...)
 	return target
 }
 
@@ -242,7 +242,7 @@ func (cfg *CfgParser) EnvUint(defaultValue uint, variables ...string) *uint {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvUint8(defaultValue uint8, variables ...string) *uint8 {
 	target := new(uint8)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvUint8Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -251,7 +251,7 @@ func (cfg *CfgParser) EnvUint8(defaultValue uint8, variables ...string) *uint8 {
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvUint16(defaultValue uint16, variables ...string) *uint16 {
 	target := new(uint16)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvUint16Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -260,7 +260,7 @@ func (cfg *CfgParser) EnvUint16(defaultValue uint16, variables ...string) *uint1
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvUint32(defaultValue uint32, variables ...string) *uint32 {
 	target := new(uint32)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvUint32Var(target, defaultValue, variables...)
 	return target
 }
 
@@ -269,6 +269,6 @@ func (cfg *CfgParser) EnvUint32(defaultValue uint32, variables ...string) *uint3
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) EnvUint64(defaultValue uint64, variables ...string) *uint64 {
 	target := new(uint64)
-	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+	cfg.EnvUint64Var(target, defaultValue, variables...)
 	return target
 }
