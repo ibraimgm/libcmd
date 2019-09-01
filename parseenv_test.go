@@ -761,3 +761,40 @@ func TestParseEnvMultipleFiles(t *testing.T) {
 		})
 	}
 }
+
+func TestParseEnvFileOnly(t *testing.T) {
+	tests := []struct {
+		env    map[string]string
+		file   map[string]string
+		result string
+	}{
+		{env: map[string]string{"A1": "foo", "A2": "bar"}, file: map[string]string{"A3": "baz"}, result: "baz"},
+		{env: map[string]string{"A1": "foo", "A3": "baz"}, file: map[string]string{"A2": "bar"}, result: "bar"},
+		{env: map[string]string{"A1": "foo", "A2": "bar"}, file: map[string]string{"A1": "baz"}, result: "baz"},
+		{env: map[string]string{"A3": "bar"}, file: map[string]string{"A3": "baz", "A1": "foo"}, result: "baz"},
+		{env: map[string]string{"A1": "foo"}, file: map[string]string{"A1": "bar"}, result: "bar"},
+		{env: map[string]string{"A3": "foo"}, file: map[string]string{}, result: "default"},
+		{env: map[string]string{"A3": "foo"}, file: map[string]string{"A3": ""}, result: ""},
+	}
+
+	for i, test := range tests {
+		cfg := libcfg.NewParser()
+
+		a := cfg.EnvString("default", "A1", "A2", "A3")
+
+		withEnv(test.env, func() {
+			withFileEnv(test.file, func(file string) {
+				cfg.UseEnv(false)
+				cfg.UseFile(file)
+
+				if err := cfg.RunEnv(); err != nil {
+					t.Errorf("Case %d, error loading env: %v", i, err)
+				}
+
+				if *a != test.result {
+					t.Errorf("Case %d, wrong string value: expected '%s', received '%s'", i, test.result, *a)
+				}
+			})
+		})
+	}
+}

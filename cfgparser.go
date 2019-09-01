@@ -7,6 +7,7 @@ type CfgParser struct {
 	optentries []*optEntry
 	shortopt   map[string]*optEntry
 	longopt    map[string]*optEntry
+	useEnv     bool
 	enventries []*envEntry
 	envvars    map[string]string
 }
@@ -17,6 +18,7 @@ func NewParser() *CfgParser {
 		optentries: make([]*optEntry, 0),
 		shortopt:   make(map[string]*optEntry),
 		longopt:    make(map[string]*optEntry),
+		useEnv:     true,
 		enventries: make([]*envEntry, 0),
 		envvars:    make(map[string]string),
 	}

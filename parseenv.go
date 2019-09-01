@@ -29,7 +29,7 @@ func (cfg *CfgParser) findEnvValue(entry *envEntry) {
 		var value string
 		var ok bool
 
-		if value, ok = cfg.envvars[name]; !ok {
+		if value, ok = cfg.envvars[name]; !ok && cfg.useEnv {
 			value, ok = os.LookupEnv(name)
 		}
 
@@ -40,6 +40,20 @@ func (cfg *CfgParser) findEnvValue(entry *envEntry) {
 			entry.val.unsetValue()
 		}
 	}
+}
+
+// UseEnv sets whether the parser should consider environment variables
+// when loading env values. By default, when you define environment options
+// (for example, with EnvString) the value to load is searched in the current
+// environment variables.
+//
+// If you call UseEnv(false) this behavior is disabled, and the only source of
+// values for environment variables will be calls to UseFile or UseFiles.
+//
+// This allows the usage of the the CfgParser with env values as a simple
+// file config loader.
+func (cfg *CfgParser) UseEnv(shouldUse bool) {
+	cfg.useEnv = shouldUse
 }
 
 // UseFile loads the content of envfile into a in-memory environment value cache.
