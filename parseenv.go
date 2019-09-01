@@ -1,7 +1,9 @@
 package libcfg
 
 import (
+	"bufio"
 	"os"
+	"strings"
 )
 
 type envEntry struct {
@@ -32,12 +34,51 @@ func (cfg *CfgParser) findEnvValue(entry *envEntry) {
 		}
 
 		switch {
-		case ok && (value != ""  || entry.val.isStr):
+		case ok && (value != "" || entry.val.isStr):
 			entry.val.setValue(value) //nolint: errheck
 		case ok && value == "":
 			entry.val.unsetValue()
 		}
 	}
+}
+
+// UseFile loads the content of envfile into a in-memory environment value cache.
+// Each line of envfile is in the format 'key=value'. Comments start with '#' and
+// blank lines are ignored.
+//
+// You can call UseFile more than once, and newer values will override older values.
+// Values loaded with UseFile will always have higher priority than actual environment
+// values.
+func (cfg *CfgParser) UseFile(envfile string) error {
+	file, err := os.Open(envfile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		splitted := strings.Split(line, "=")
+
+		if len(splitted) == 2 {
+			cfg.envvars[splitted[0]] = splitted[1]
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UseFiles is a shortcut to multiple calls to UseFile.
+// Errors are ignored, so this funcion is useful to load a list of files when is acceptable
+// that some of them might not exist
+func (cfg *CfgParser) UseFiles(envfiles ...string) {
+
 }
 
 // EnvStringVar creates a new parser setting to load a string value from the
