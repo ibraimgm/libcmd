@@ -60,11 +60,21 @@ func (cfg *CfgParser) UseFile(envfile string) error {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		splitted := strings.Split(line, "=")
 
-		if len(splitted) == 2 {
-			cfg.envvars[splitted[0]] = splitted[1]
+		if comment := strings.Index(line, "#"); comment >= 0 {
+			line = line[0:comment]
 		}
+
+		index := strings.Index(line, "=")
+
+		if index < 0 {
+			continue
+		}
+
+		key := line[0:index]
+		value := line[index+1:]
+
+		cfg.envvars[key] = strings.TrimRight(value, " ")
 	}
 
 	if err := scanner.Err(); err != nil {
