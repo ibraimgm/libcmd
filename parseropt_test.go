@@ -11,12 +11,14 @@ import (
 
 func TestParseOptArgs(t *testing.T) {
 	tests := []struct {
-		cmd     []string
-		abool   bool
-		aint    int
-		auint   uint
-		astring string
-		args    []string
+		cmd      []string
+		abool    bool
+		aint     int
+		auint    uint
+		astring  string
+		afloat32 float32
+		afloat64 float64
+		args     []string
 	}{
 		{cmd: []string{}},
 		{cmd: []string{"-b", "-i", "5", "-u", "9", "-s", "foo"}, abool: true, aint: 5, auint: 9, astring: "foo"},
@@ -33,6 +35,9 @@ func TestParseOptArgs(t *testing.T) {
 		{cmd: []string{"--no-abool=false"}, abool: true},
 		{cmd: []string{"-s", "foo", "--astring="}},
 		{cmd: []string{"--astring", "--aint", "5"}, astring: "--aint", args: []string{"5"}},
+		{cmd: []string{"-i", "5", "-f32", "3.14", "-f64", "3.1415"}, aint: 5, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"--afloat32", "3.14", "--afloat64", "3.1415"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"--afloat32=3.14", "--afloat64=3.1415"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 	}
 
 	for i, test := range tests {
@@ -42,6 +47,8 @@ func TestParseOptArgs(t *testing.T) {
 		aint := cfg.OptInt("aint", "i", 0, "specifies an int value")
 		auint := cfg.OptUint("auint", "u", 0, "specifies an uint value")
 		astring := cfg.OptString("astring", "s", "", "specifies a string value")
+		afloat32 := cfg.OptFloat32("afloat32", "f32", 0, "specifies a float32 value")
+		afloat64 := cfg.OptFloat64("afloat64", "f64", 0, "specifies a float64 value")
 
 		if err := cfg.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -62,6 +69,14 @@ func TestParseOptArgs(t *testing.T) {
 
 		if *astring != test.astring {
 			t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.astring, *astring)
+		}
+
+		if *afloat32 != test.afloat32 {
+			t.Errorf("Case %d, wrong float32 value: expected '%v', received '%v'", i, test.afloat32, *afloat32)
+		}
+
+		if *afloat64 != test.afloat64 {
+			t.Errorf("Case %d, wrong float64 value: expected '%v', received '%v'", i, test.afloat64, *afloat64)
 		}
 
 		args := cfg.Args()
@@ -81,28 +96,30 @@ func TestParseOptArgs(t *testing.T) {
 
 func TestParseOptDefault(t *testing.T) {
 	tests := []struct {
-		cmd     []string
-		abool   bool
-		aint    int
-		auint   uint
-		astring string
-		args    []string
+		cmd      []string
+		abool    bool
+		aint     int
+		auint    uint
+		astring  string
+		afloat32 float32
+		afloat64 float64
+		args     []string
 	}{
-		{cmd: []string{}, abool: true, aint: 8, auint: 16, astring: "default"},
-		{cmd: []string{"-b", "-i", "5", "-u", "9", "-s", "foo"}, abool: true, aint: 5, auint: 9, astring: "foo"},
-		{cmd: []string{"--abool", "--aint", "5", "--auint", "9", "--astring", "foo"}, abool: true, aint: 5, auint: 9, astring: "foo"},
-		{cmd: []string{"--aint=5", "--astring=foo"}, abool: true, aint: 5, auint: 16, astring: "foo"},
-		{cmd: []string{"-b", "--abool=false"}, aint: 8, auint: 16, astring: "default"},
-		{cmd: []string{"-b", "--no-abool"}, aint: 8, auint: 16, astring: "default"},
-		{cmd: []string{"-i", "5", "--aint", "6", "-i", "7"}, abool: true, aint: 7, auint: 16, astring: "default"},
-		{cmd: []string{"-u", "5", "--auint", "6", "-u", "7"}, abool: true, aint: 8, auint: 7, astring: "default"},
-		{cmd: []string{"-b", "-i", "5", "foo", "bar"}, abool: true, aint: 5, auint: 16, astring: "default", args: []string{"foo", "bar"}},
-		{cmd: []string{"foo", "bar"}, abool: true, aint: 8, auint: 16, astring: "default", args: []string{"foo", "bar"}},
-		{cmd: []string{"foo", "-i", "5"}, abool: true, aint: 8, auint: 16, astring: "default", args: []string{"foo", "-i", "5"}},
-		{cmd: []string{"-b", "--no-abool=true"}, aint: 8, auint: 16, astring: "default"},
-		{cmd: []string{"--no-abool=false"}, abool: true, aint: 8, auint: 16, astring: "default"},
-		{cmd: []string{"-s", "foo", "--astring="}, abool: true, aint: 8, auint: 16},
-		{cmd: []string{"--astring", "--aint", "5"}, abool: true, aint: 8, auint: 16, astring: "--aint", args: []string{"5"}},
+		{cmd: []string{}, abool: true, aint: 8, auint: 16, afloat32: float32(3.14), afloat64: float64(3.1415), astring: "default"},
+		{cmd: []string{"-b", "-i", "5", "-u", "9", "-s", "foo", "-f32", "5.5", "-f64", "5.555"}, abool: true, aint: 5, auint: 9, astring: "foo", afloat32: float32(5.5), afloat64: float64(5.555)},
+		{cmd: []string{"--abool", "--aint", "5", "--auint", "9", "--astring", "foo", "--afloat32", "5.5", "--afloat64", "5.555"}, abool: true, aint: 5, auint: 9, astring: "foo", afloat32: float32(5.5), afloat64: float64(5.555)},
+		{cmd: []string{"--aint=5", "--astring=foo"}, abool: true, aint: 5, auint: 16, astring: "foo", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-b", "--abool=false"}, aint: 8, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-b", "--no-abool"}, aint: 8, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-i", "5", "--aint", "6", "-i", "7", "-f32", "5.5", "--afloat32", "3.14"}, abool: true, aint: 7, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-u", "5", "--auint", "6", "-u", "7"}, abool: true, aint: 8, auint: 7, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-b", "-i", "5", "foo", "bar"}, abool: true, aint: 5, auint: 16, astring: "default", args: []string{"foo", "bar"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"foo", "bar"}, abool: true, aint: 8, auint: 16, astring: "default", args: []string{"foo", "bar"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"foo", "-i", "5"}, abool: true, aint: 8, auint: 16, astring: "default", args: []string{"foo", "-i", "5"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-b", "--no-abool=true"}, aint: 8, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"--no-abool=false"}, abool: true, aint: 8, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-s", "foo", "--astring="}, abool: true, aint: 8, auint: 16, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"--astring", "--aint", "5"}, abool: true, aint: 8, auint: 16, astring: "--aint", args: []string{"5"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 	}
 
 	for i, test := range tests {
@@ -112,6 +129,8 @@ func TestParseOptDefault(t *testing.T) {
 		aint := cfg.OptInt("aint", "i", 8, "specifies an int value")
 		auint := cfg.OptUint("auint", "u", 16, "specifies an uint value")
 		astring := cfg.OptString("astring", "s", "default", "specifies a string value")
+		afloat32 := cfg.OptFloat32("afloat32", "f32", float32(3.14), "specifies a float32 value")
+		afloat64 := cfg.OptFloat64("afloat64", "f64", float64(3.1415), "specifies a float64 value")
 
 		if err := cfg.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -132,6 +151,14 @@ func TestParseOptDefault(t *testing.T) {
 
 		if *astring != test.astring {
 			t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.astring, *astring)
+		}
+
+		if *afloat32 != test.afloat32 {
+			t.Errorf("Case %d, wrong float32 value: expected '%v', received '%v'", i, test.afloat32, *afloat32)
+		}
+
+		if *afloat64 != test.afloat64 {
+			t.Errorf("Case %d, wrong float64 value: expected '%v', received '%v'", i, test.afloat64, *afloat64)
 		}
 
 		args := cfg.Args()

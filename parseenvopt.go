@@ -120,6 +120,27 @@ func (cfg *CfgParser) EnvOptUint64Var(target *uint64, long, short string, defaul
 	cfg.addEnv(&val, variables)
 }
 
+// EnvOptFloat32Var creates a new parser setting to load a float32 value both
+// from command-line and from the environment variables. The environment is checked first,
+// and can be replaced with by the command-line options.
+// The end value will be available on the provided pointer.
+func (cfg *CfgParser) EnvOptFloat32Var(target *float32, long, short string, defaultValue float32, help string, variables ...string) {
+	val := variant{ptrValue: target, defaultValue: defaultValue}
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
+	cfg.addEnv(&val, variables)
+}
+
+// EnvOptFloat64Var creates a new parser setting to load a float64 value both
+// from command-line and from the environment variables. The environment is checked first,
+// and can be replaced with by the command-line options.
+// The end value will be available on the provided pointer.
+func (cfg *CfgParser) EnvOptFloat64Var(target *float64, long, short string, defaultValue float64, help string, variables ...string) {
+	val := variant{ptrValue: target, defaultValue: defaultValue}
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
+	cfg.addEnv(&val, variables)
+}
+
+
 // EnvOptString creates a new parser setting to load a string value both
 // from command-line and from the environment variables. The environment is checked first,
 // and can be replaced with by the command-line options.
@@ -237,5 +258,25 @@ func (cfg *CfgParser) EnvOptUint32(long, short string, defaultValue uint32, help
 func (cfg *CfgParser) EnvOptUint64(long, short string, defaultValue uint64, help string, variables ...string) *uint64 {
 	target := new(uint64)
 	cfg.EnvOptUint64Var(target, long, short, defaultValue, help, variables...)
+	return target
+}
+
+// EnvOptFloat32 creates a new parser setting to load a float32 value both
+// from command-line and from the environment variables. The environment is checked first,
+// and can be replaced with by the command-line options.
+// The end value will be available on the returned pointer.
+func (cfg *CfgParser) EnvOptFloat32(long, short string, defaultValue float32, help string, variables ...string) *float32 {
+	target := new(float32)
+	cfg.EnvOptFloat32Var(target, long, short, defaultValue, help, variables...)
+	return target
+}
+
+// EnvOptFloat64 creates a new parser setting to load a float64 value both
+// from command-line and from the environment variables. The environment is checked first,
+// and can be replaced with by the command-line options.
+// The end value will be available on the returned pointer.
+func (cfg *CfgParser) EnvOptFloat64(long, short string, defaultValue float64, help string, variables ...string) *float64 {
+	target := new(float64)
+	cfg.EnvOptFloat64Var(target, long, short, defaultValue, help, variables...)
 	return target
 }

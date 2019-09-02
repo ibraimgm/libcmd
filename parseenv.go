@@ -190,6 +190,20 @@ func (cfg *CfgParser) EnvUint64Var(target *uint64, defaultValue uint64, variable
 	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
 }
 
+// EnvFloat32Var creates a new parser setting to load a float32 value from the
+// specified environment variables.
+// After parsing, the value will be available on the provided pointer.
+func (cfg *CfgParser) EnvFloat32Var(target *float32, defaultValue float32, variables ...string) {
+	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+}
+
+// EnvFloat64Var creates a new parser setting to load a float64 value from the
+// specified environment variables.
+// After parsing, the value will be available on the provided pointer.
+func (cfg *CfgParser) EnvFloat64Var(target *float64, defaultValue float64, variables ...string) {
+	cfg.addEnv(&variant{ptrValue: target, defaultValue: defaultValue}, variables)
+}
+
 // EnvString creates a new parser setting to load a string value from the
 // specified environment variables.
 // After parsing, the value will be available on the returned pointer.
@@ -295,5 +309,23 @@ func (cfg *CfgParser) EnvUint32(defaultValue uint32, variables ...string) *uint3
 func (cfg *CfgParser) EnvUint64(defaultValue uint64, variables ...string) *uint64 {
 	target := new(uint64)
 	cfg.EnvUint64Var(target, defaultValue, variables...)
+	return target
+}
+
+// EnvFloat32 creates a new parser setting to load a float32 value from the
+// specified environment variables.
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) EnvFloat32(defaultValue float32, variables ...string) *float32 {
+	target := new(float32)
+	cfg.EnvFloat32Var(target, defaultValue, variables...)
+	return target
+}
+
+// EnvFloat64 creates a new parser setting to load a float64 value from the
+// specified environment variables.
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) EnvFloat64(defaultValue float64, variables ...string) *float64 {
+	target := new(float64)
+	cfg.EnvFloat64Var(target, defaultValue, variables...)
 	return target
 }

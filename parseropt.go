@@ -159,6 +159,20 @@ func (cfg *CfgParser) OptUint64Var(target *uint64, long, short string, defaultVa
 	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
 }
 
+// OptFloat32Var creates a new parser setting to load a float32 value from the command line only.
+// After parsing, the value will be available on the provided pointer.
+func (cfg *CfgParser) OptFloat32Var(target *float32, long, short string, defaultValue float32, help string) {
+	val := variant{ptrValue: target, defaultValue: defaultValue}
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
+}
+
+// OptFloat64Var creates a new parser setting to load a float64 value from the command line only.
+// After parsing, the value will be available on the provided pointer.
+func (cfg *CfgParser) OptFloat64Var(target *float64, long, short string, defaultValue float64, help string) {
+	val := variant{ptrValue: target, defaultValue: defaultValue}
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
+}
+
 // OptString creates a new parser setting to load a string value from the command line only.
 // After parsing, the value will be available on the returned pointer.
 func (cfg *CfgParser) OptString(long, short, defaultValue, help string) *string {
@@ -252,5 +266,21 @@ func (cfg *CfgParser) OptUint32(long, short string, defaultValue uint32, help st
 func (cfg *CfgParser) OptUint64(long, short string, defaultValue uint64, help string) *uint64 {
 	ptr := new(uint64)
 	cfg.OptUint64Var(ptr, long, short, defaultValue, help)
+	return ptr
+}
+
+// OptFloat32 creates a new parser setting to load a float32 value from the command line only.
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptFloat32(long, short string, defaultValue float32, help string) *float32 {
+	ptr := new(float32)
+	cfg.OptFloat32Var(ptr, long, short, defaultValue, help)
+	return ptr
+}
+
+// OptFloat64 creates a new parser setting to load a float64 value from the command line only.
+// After parsing, the value will be available on the returned pointer.
+func (cfg *CfgParser) OptFloat64(long, short string, defaultValue float64, help string) *float64 {
+	ptr := new(float64)
+	cfg.OptFloat64Var(ptr, long, short, defaultValue, help)
 	return ptr
 }

@@ -8,18 +8,20 @@ import (
 
 func TestParseEnvOpt(t *testing.T) {
 	tests := []struct {
-		env     map[string]string
-		cmd     []string
-		abool   bool
-		astring string
-		aint    int
-		auint   uint
+		env      map[string]string
+		cmd      []string
+		abool    bool
+		astring  string
+		aint     int
+		auint    uint
+		afloat32 float32
+		afloat64 float64
 	}{
 		{env: map[string]string{}, cmd: []string{}},
 		{
-			env:   map[string]string{"B1": "true", "S1": "foo", "I1": "5", "U1": "7"},
+			env:   map[string]string{"B1": "true", "S1": "foo", "I1": "5", "U1": "7", "F1": "3.14", "D1": "3.1415"},
 			cmd:   []string{},
-			abool: true, astring: "foo", aint: 5, auint: 7,
+			abool: true, astring: "foo", aint: 5, auint: 7, afloat32: float32(3.14), afloat64: float64(3.1415),
 		},
 		{
 			env:   map[string]string{},
@@ -45,6 +47,8 @@ func TestParseEnvOpt(t *testing.T) {
 		astring := cfg.EnvOptString("astring", "s", "", "", "S1", "S2")
 		aint := cfg.EnvOptInt("aint", "i", 0, "", "I1", "I2")
 		auint := cfg.EnvOptUint("auint", "u", 0, "", "U1", "U2")
+		afloat32 := cfg.EnvOptFloat32("afloat32", "f32", 0, "", "F1")
+		afloat64 := cfg.EnvOptFloat64("afloat64", "f64", 0, "", "D1")
 
 		i := i       //pin
 		test := test //pin
@@ -68,6 +72,14 @@ func TestParseEnvOpt(t *testing.T) {
 
 			if *astring != test.astring {
 				t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.astring, *astring)
+			}
+
+			if *afloat32 != test.afloat32 {
+				t.Errorf("Case %d, wrong float32 value: expected '%v', received '%v'", i, test.afloat32, *afloat32)
+			}
+
+			if *afloat64 != test.afloat64 {
+				t.Errorf("Case %d, wrong float64 value: expected '%v', received '%v'", i, test.afloat64, *afloat64)
 			}
 		})
 	}

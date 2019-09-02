@@ -95,6 +95,20 @@ func (v *variant) setValue(value string) error { //nolint: gocyclo
 			return fmt.Errorf("'%v' is not a valid uint64 value", value)
 		}
 		*val = uint64(vv)
+
+	case *float32:
+		vv, err := strconv.ParseFloat(value, 32)
+		if err != nil {
+			return fmt.Errorf("'%v' is not a valid float32 value", value)
+		}
+		*val = float32(vv)
+
+	case *float64:
+		vv, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return fmt.Errorf("'%v' is not a valid float64 value", value)
+		}
+		*val = float64(vv)
 	}
 
 	v.isSet = true
