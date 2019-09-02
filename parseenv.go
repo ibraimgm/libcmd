@@ -37,7 +37,7 @@ func (cfg *CfgParser) findEnvValue(entry *envEntry) {
 		case ok && (value != "" || entry.val.isStr):
 			entry.val.setValue(value) //nolint: errcheck
 		case ok && value == "":
-			entry.val.unsetValue()
+			entry.val.setToZero()
 		}
 	}
 }

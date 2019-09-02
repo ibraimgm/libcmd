@@ -29,6 +29,8 @@ func NewParser() *CfgParser {
 // passed by args as command line arguments.
 // Note that args must not include the program name
 func (cfg *CfgParser) RunArgs(args []string) error {
+	cfg.loadFromEnv()
+
 	if err := cfg.doParse(args); err != nil {
 		return err
 	}
@@ -37,12 +39,5 @@ func (cfg *CfgParser) RunArgs(args []string) error {
 		cfg.optentries[i].val.useDefault()
 	}
 
-	return nil
-}
-
-// RunEnv loads all the configuration values of the env options,
-// using the current environment variables.
-func (cfg *CfgParser) RunEnv() error {
-	cfg.loadFromEnv()
 	return nil
 }

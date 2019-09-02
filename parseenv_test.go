@@ -161,7 +161,7 @@ func TestParseEnvArgs(t *testing.T) {
 		test := test // pin scope
 
 		withEnv(test.env, func() {
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, error loading from environment: %v", i, err)
 				return
 			}
@@ -242,7 +242,7 @@ func TestParseEnvDefault(t *testing.T) {
 			"I1": "1",
 			"I2": "2",
 			"I3": "",
-		}, abool: true, aint: 8, auint: 16, astring: "xyz"},
+		}, abool: true, aint: 0, auint: 16, astring: "xyz"},
 		{env: map[string]string{
 			"U1": "1",
 			"U2": "2",
@@ -260,7 +260,7 @@ func TestParseEnvDefault(t *testing.T) {
 			"U1": "1",
 			"U2": "2",
 			"U3": "",
-		}, abool: true, aint: 8, auint: 16, astring: "xyz"},
+		}, abool: true, aint: 8, auint: 0, astring: "xyz"},
 		{env: map[string]string{
 			"S1": "foo",
 			"S2": "bar",
@@ -293,7 +293,7 @@ func TestParseEnvDefault(t *testing.T) {
 		test := test // pin scope
 
 		withEnv(test.env, func() {
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, error loading from environment: %v", i, err)
 				return
 			}
@@ -343,7 +343,7 @@ func TestEnvIntLimit(t *testing.T) {
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, loading env: %v", i, err)
 				return
 			}
@@ -393,7 +393,7 @@ func TestEnvUintLimit(t *testing.T) {
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, loading env: %v", i, err)
 				return
 			}
@@ -530,7 +530,7 @@ func TestParseEnvFileArgs(t *testing.T) {
 				return
 			}
 
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, error loading from environment: %v", i, err)
 				return
 			}
@@ -611,7 +611,7 @@ func TestParseEnvFileDefault(t *testing.T) {
 			"I1": "1",
 			"I2": "2",
 			"I3": "",
-		}, abool: true, aint: 8, auint: 16, astring: "xyz"},
+		}, abool: true, aint: 0, auint: 16, astring: "xyz"},
 		{env: map[string]string{
 			"U1": "1",
 			"U2": "2",
@@ -629,7 +629,7 @@ func TestParseEnvFileDefault(t *testing.T) {
 			"U1": "1",
 			"U2": "2",
 			"U3": "",
-		}, abool: true, aint: 8, auint: 16, astring: "xyz"},
+		}, abool: true, aint: 8, auint: 0, astring: "xyz"},
 		{env: map[string]string{
 			"S1": "foo",
 			"S2": "bar",
@@ -667,7 +667,7 @@ func TestParseEnvFileDefault(t *testing.T) {
 				return
 			}
 
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, error loading from environment: %v", i, err)
 				return
 			}
@@ -725,7 +725,7 @@ func TestEnvSpecialCases(t *testing.T) {
 				return
 			}
 
-			if err := cfg.RunEnv(); err != nil {
+			if err := cfg.RunArgs(nil); err != nil {
 				t.Errorf("Case %d, error loading env: %v", i, err)
 			}
 
@@ -762,7 +762,7 @@ func TestParseEnvMultipleFiles(t *testing.T) {
 			withFileEnv(test.file2, func(file2 string) {
 				cfg.UseFiles(file1, "does-not-exist", file2)
 
-				if err := cfg.RunEnv(); err != nil {
+				if err := cfg.RunArgs(nil); err != nil {
 					t.Errorf("Case %d, error loading env: %v", i, err)
 				}
 
@@ -805,7 +805,7 @@ func TestParseEnvFileOnly(t *testing.T) {
 					t.Errorf("Case %d, error loading env from file: %v", i, err)
 				}
 
-				if err := cfg.RunEnv(); err != nil {
+				if err := cfg.RunArgs(nil); err != nil {
 					t.Errorf("Case %d, error loading env: %v", i, err)
 				}
 

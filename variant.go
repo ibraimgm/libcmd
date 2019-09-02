@@ -113,8 +113,8 @@ func (v *variant) useDefault() {
 	ptr.Set(val)
 }
 
-func (v *variant) unsetValue() {
-	v.isSet = false
+func (v *variant) setToZero() {
+	v.isSet = true
 
 	ptr := reflect.Indirect(reflect.ValueOf(v.ptrValue))
 	val := reflect.Zero(reflect.TypeOf(v.defaultValue))
