@@ -29,6 +29,11 @@ linters:
 
 issues:
   exclude-rules:
+    # ignore some linters on test code
+    - path: _test\.go
+      linters:
+        - gocyclo
+
     # goimports: We should care only when changing files
     - text: File is not `goimports`-ed
       linters:
