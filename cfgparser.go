@@ -2,6 +2,12 @@ package libcfg
 
 // CfgParser is a parser that can load configurations from the command line or the environment
 // variables.
+//
+// CfgParser implements all the methods on EnvOptParser, and extra methods that allows the
+// API user to run the parsing algorithm.
+//
+// You should never build an instance of CfgParser manually; to get a correctly configured and
+// ready to use instance, use the NewParser function.
 type CfgParser struct {
 	args       []string
 	optentries []*optEntry
@@ -27,6 +33,7 @@ func NewParser() *CfgParser {
 // RunArgs loads all the configuration values according to
 // the settings of the current parser, but assumes the values
 // passed by args as command line arguments.
+//
 // Note that args must not include the program name
 func (cfg *CfgParser) RunArgs(args []string) error {
 	cfg.loadFromEnv()

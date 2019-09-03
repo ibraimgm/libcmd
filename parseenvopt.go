@@ -140,7 +140,6 @@ func (cfg *CfgParser) EnvOptFloat64Var(target *float64, long, short string, defa
 	cfg.addEnv(&val, variables)
 }
 
-
 // EnvOptString creates a new parser setting to load a string value both
 // from command-line and from the environment variables. The environment is checked first,
 // and can be replaced with by the command-line options.
