@@ -26,6 +26,18 @@ func (cfg *CfgParser) findOpt(entryName string) *optEntry {
 	return cfg.longopt[entryName]
 }
 
+func (cfg *CfgParser) findByName(optName string) *optEntry {
+	if entry, ok := cfg.longopt["--"+optName]; ok {
+		return entry
+	}
+
+	if entry, ok := cfg.shortopt["-"+optName]; ok {
+		return entry
+	}
+
+	return nil
+}
+
 // parse all command-line arguments
 func (cfg *CfgParser) doParse(args []string) error {
 	for i := 0; i < len(args); i++ {

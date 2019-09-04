@@ -42,6 +42,18 @@ func (cfg *CfgParser) findEnvValue(entry *envEntry) {
 	}
 }
 
+func (cfg *CfgParser) findEnvEntryByPtr(val *variant) *envEntry {
+	for i := range cfg.enventries {
+		entry := cfg.enventries[i]
+
+		if entry.val == val {
+			return entry
+		}
+	}
+
+	return nil
+}
+
 // UseEnv sets whether the parser should consider environment variables
 // when loading env values. By default, when you define environment options
 // (for example, with EnvString) the value to load is searched in the current
