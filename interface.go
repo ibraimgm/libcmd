@@ -64,6 +64,10 @@ type OptParser interface {
 // parser does implements the full spectrum of the EnvOpt* methods. Client code
 // is not expected to implement this interface.
 type EnvParser interface {
+	UseEnv(shouldUse bool)
+	UseFile(envfile string) error
+	UseFiles(envfiles ...string)
+
 	EnvStringVar(target *string, defaultValue string, variables ...string)
 	EnvBoolVar(target *bool, defaultValue bool, variables ...string)
 	EnvIntVar(target *int, defaultValue int, variables ...string)
