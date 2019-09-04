@@ -412,6 +412,37 @@ func TestCommandEnvInherit(t *testing.T) {
 		{cmd: []string{"c1"}, env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: "s1", s2: "y"},
 		{cmd: []string{"c1"}, env: map[string]string{"X": "x", "Y": "y"}, file: map[string]string{"Z": "z"}, s1: "s1", s2: "z"},
 		{cmd: []string{"c1"}, env: map[string]string{"X": "x", "Z": "z"}, file: map[string]string{"y": "y"}, s1: "s1", s2: "z"},
+
+		{cmd: []string{"--s1=a", "--s2=b", "c1"}, env: map[string]string{}, file: map[string]string{}, s1: "a", s2: "s2"},
+		{cmd: []string{"--s1=c", "c1"}, env: map[string]string{"A": "a"}, file: map[string]string{"B": "b"}, s1: "c", s2: "s2"},
+		{cmd: []string{"--s1=a", "c1"}, env: map[string]string{"B": "b"}, file: map[string]string{"A": "a"}, s1: "a", s2: "s2"},
+		{cmd: []string{"--s1=d", "c1"}, env: map[string]string{"A": "a", "C": "c"}, file: map[string]string{"B": "b"}, s1: "d", s2: "s2"},
+		{cmd: []string{"--s2=x", "c1"}, env: map[string]string{}, file: map[string]string{}, s1: "s1", s2: "s2"},
+		{cmd: []string{"--s2=y", "c1"}, env: map[string]string{"X": "x"}, file: map[string]string{}, s1: "s1", s2: "x"},
+		{cmd: []string{"--s2=y", "c1"}, env: map[string]string{}, file: map[string]string{"X": "x"}, s1: "s1", s2: "x"},
+		{cmd: []string{"--s2=z", "c1"}, env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: "s1", s2: "y"},
+		{cmd: []string{"--s2=x", "c1"}, env: map[string]string{"X": "x", "Y": "y"}, file: map[string]string{"Z": "z"}, s1: "s1", s2: "z"},
+		{cmd: []string{"--s2=y", "c1"}, env: map[string]string{"X": "x", "Z": "z"}, file: map[string]string{"y": "y"}, s1: "s1", s2: "z"},
+
+		{cmd: []string{"c1", "--s1=a", "--s2=b"}, env: map[string]string{}, file: map[string]string{}, s1: "a", s2: "b"},
+		{cmd: []string{"c1", "--s1=c"}, env: map[string]string{"A": "a"}, file: map[string]string{"B": "b"}, s1: "c", s2: "s2"},
+		{cmd: []string{"c1", "--s1=a"}, env: map[string]string{"B": "b"}, file: map[string]string{"A": "a"}, s1: "a", s2: "s2"},
+		{cmd: []string{"c1", "--s1=d"}, env: map[string]string{"A": "a", "C": "c"}, file: map[string]string{"B": "b"}, s1: "d", s2: "s2"},
+		{cmd: []string{"c1", "--s2=y"}, env: map[string]string{"X": "x"}, file: map[string]string{}, s1: "s1", s2: "y"},
+		{cmd: []string{"c1", "--s2=y"}, env: map[string]string{}, file: map[string]string{"X": "x"}, s1: "s1", s2: "y"},
+		{cmd: []string{"c1", "--s2=x"}, env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: "s1", s2: "x"},
+		{cmd: []string{"c1", "--s2=x"}, env: map[string]string{"X": "x", "Y": "y"}, file: map[string]string{"Z": "z"}, s1: "s1", s2: "x"},
+		{cmd: []string{"c1", "--s2=y"}, env: map[string]string{"X": "x", "Z": "z"}, file: map[string]string{"y": "y"}, s1: "s1", s2: "y"},
+
+		{cmd: []string{"--s1=z", "c1", "--s1=a", "--s2=b"}, env: map[string]string{}, file: map[string]string{}, s1: "a", s2: "b"},
+		{cmd: []string{"--s1=z", "c1", "--s1=c"}, env: map[string]string{"A": "a"}, file: map[string]string{"B": "b"}, s1: "c", s2: "s2"},
+		{cmd: []string{"--s1=z", "c1", "--s1=a"}, env: map[string]string{"B": "b"}, file: map[string]string{"A": "a"}, s1: "a", s2: "s2"},
+		{cmd: []string{"--s1=e", "c1", "--s1=d"}, env: map[string]string{"A": "a", "C": "c"}, file: map[string]string{"B": "b"}, s1: "d", s2: "s2"},
+		{cmd: []string{"--s2=a", "c1", "--s2=y"}, env: map[string]string{"X": "x"}, file: map[string]string{}, s1: "s1", s2: "y"},
+		{cmd: []string{"--s2=a", "c1", "--s2=y"}, env: map[string]string{}, file: map[string]string{"X": "x"}, s1: "s1", s2: "y"},
+		{cmd: []string{"--s2=a", "c1", "--s2=x"}, env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: "s1", s2: "x"},
+		{cmd: []string{"--s2=a", "c1", "--s2=x"}, env: map[string]string{"X": "x", "Y": "y"}, file: map[string]string{"Z": "z"}, s1: "s1", s2: "x"},
+		{cmd: []string{"--s2=a", "c1", "--s2=y"}, env: map[string]string{"X": "x", "Z": "z"}, file: map[string]string{"y": "y"}, s1: "s1", s2: "y"},
 	}
 
 	for i, test := range tests {

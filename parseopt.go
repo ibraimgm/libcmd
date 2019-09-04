@@ -77,6 +77,7 @@ func (cfg *CfgParser) doParse(args []string) error {
 		if err := entry.setValue(arg); err != nil {
 			return err
 		}
+		entry.val.isOpt = true
 	}
 
 	return nil

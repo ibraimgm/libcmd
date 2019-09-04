@@ -12,6 +12,7 @@ type variant struct {
 	isBool       bool
 	isStr        bool
 	isSet        bool
+	isOpt        bool
 }
 
 func (v *variant) setValue(value string) error { //nolint: gocyclo

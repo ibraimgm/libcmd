@@ -19,6 +19,10 @@ func (cfg *CfgParser) loadFromEnv() {
 	for i := range cfg.enventries {
 		entry := cfg.enventries[i]
 
+		if entry.val.isOpt {
+			return
+		}
+
 		cfg.findEnvValue(entry)
 		entry.val.useDefault()
 	}
