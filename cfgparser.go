@@ -1,11 +1,13 @@
 package libcfg
 
 import (
+	"fmt"
 	"os"
 )
 
 // parser that can load configurations from the command line or the environment variables.
 type cfgParser struct {
+	options    Options
 	commands   map[string]*commandImpl
 	args       []string
 	optentries []*optEntry
@@ -26,10 +28,7 @@ func makeCfgParser() *cfgParser {
 
 // NewParser returns a new cfgParser, ready to be used.
 func NewParser() RootParser {
-	p := makeCfgParser()
-	p.Configure(Options{})
-
-	return p
+	return makeCfgParser()
 }
 
 func newSubParser(original *cfgParser) *cfgParser {
@@ -62,11 +61,16 @@ func (cfg *cfgParser) RunArgs(args []string) error {
 		}
 	}
 
+	if len(cfg.args) > 0 && cfg.options.StrictParsing {
+		return fmt.Errorf("unknown argument: %s", cfg.args[0])
+	}
+
 	return nil
 }
 
 func (cfg *cfgParser) Configure(options Options) {
 	cfg.envLoader.UseEnv(!options.FilesOnly)
+	cfg.options = options
 }
 
 func (cfg *cfgParser) UseFile(envfile string) error {

@@ -13,4 +13,8 @@ type Options struct {
 	// the value might have already been set by a parent that allows the use
 	// of env vars.
 	FilesOnly bool
+
+	// When true, if any args remain unparsed, the parser will return an error.
+	// By default, the parser only returns an error if an unknown argument is passed.
+	StrictParsing bool
 }

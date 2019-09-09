@@ -352,3 +352,46 @@ func TestOptIntegerLimits(t *testing.T) {
 		}
 	}
 }
+
+func TestOptStrict(t *testing.T) {
+	tests := []struct {
+		cmd         []string
+		args        []string
+		expectError bool
+	}{
+		{cmd: []string{}, args: []string{}, expectError: false},
+		{cmd: []string{"-s", "foo"}, args: []string{}, expectError: false},
+		{cmd: []string{"-s", "foo", "bar"}, args: []string{"bar"}, expectError: true},
+		{cmd: []string{"bar", "-s", "foo"}, args: []string{"bar", "-s", "foo"}, expectError: true},
+		{cmd: []string{"bar", "-s", "foo", "baz"}, args: []string{"bar", "-s", "foo", "baz"}, expectError: true},
+	}
+
+	for i, test := range tests {
+		p := libcfg.NewParser()
+		p.Configure(libcfg.Options{StrictParsing: true})
+		p.String("", "s", "", "")
+
+		err := p.RunArgs(test.cmd)
+
+		if test.expectError && err == nil {
+			t.Errorf("Case %d should have returned an error", i)
+		}
+
+		if !test.expectError && err != nil {
+			t.Errorf("Case %d, error running parser: %v", i, err)
+		}
+
+		args := p.Args()
+
+		if len(test.args) != len(args) {
+			t.Errorf("Case %d, wrong size of rest arguments: expected '%v', received '%v'", i, len(test.args), len(args))
+			continue
+		}
+
+		for j := 0; j < len(test.args); j++ {
+			if args[j] != test.args[j] {
+				t.Errorf("Case %d, wrong args result at pos %d: expected '%v', received '%v'", i, j, test.args[j], args[j])
+			}
+		}
+	}
+}
