@@ -133,7 +133,7 @@ func TestEnvOptFile(t *testing.T) {
 		test := test //pin
 
 		withFileEnv(test.env, func(filename string) {
-			p.UseEnv(false)
+			p.Configure(libcfg.Options{FilesOnly: true})
 
 			if err := p.UseFile(filename); err != nil {
 				t.Errorf("Case %d, error loading env file: %v", i, err)

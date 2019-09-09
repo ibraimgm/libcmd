@@ -26,7 +26,10 @@ func makeCfgParser() *cfgParser {
 
 // NewParser returns a new cfgParser, ready to be used.
 func NewParser() RootParser {
-	return makeCfgParser()
+	p := makeCfgParser()
+	p.Configure(Options{})
+
+	return p
 }
 
 func newSubParser(original *cfgParser) *cfgParser {
@@ -62,8 +65,8 @@ func (cfg *cfgParser) RunArgs(args []string) error {
 	return nil
 }
 
-func (cfg *cfgParser) UseEnv(shouldUse bool) {
-	cfg.envLoader.UseEnv(shouldUse)
+func (cfg *cfgParser) Configure(options Options) {
+	cfg.envLoader.UseEnv(!options.FilesOnly)
 }
 
 func (cfg *cfgParser) UseFile(envfile string) error {

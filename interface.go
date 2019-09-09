@@ -94,7 +94,10 @@ type EnvLoader interface {
 // can be fixed by the user with environment variables, but can be easily override
 // on the fly by command-line options.
 type OptParser interface {
-	UseEnv(shouldUse bool)
+	// Configure change the current parser configuration to the provided options value.
+	// See Options for details.
+	Configure(options Options)
+
 	UseFile(envfile string) error
 	UseFiles(envfiles ...string)
 
