@@ -134,9 +134,16 @@ func (cfg *cfgParser) doParse(args []string) error {
 		// parse the current argument
 		arg := parseOptArg(args[i])
 
-		// if it is not a param, break the parsing and collect
-		// the rest of the list
+		// if it is not a param...
 		if arg == nil {
+			// if we have targets to collect, we can continue...
+			if cfg.options.Targets > uint(len(cfg.targets)) {
+				cfg.targets = append(cfg.targets, args[i])
+				continue
+			}
+
+			// otherwise, break the parsing and collect
+			// the rest of the list
 			cfg.args = args[i:]
 			return nil
 		}

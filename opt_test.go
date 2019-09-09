@@ -395,3 +395,69 @@ func TestOptStrict(t *testing.T) {
 		}
 	}
 }
+
+func TestOptTargets(t *testing.T) {
+	tests := []struct {
+		cmd     []string
+		targets []string
+		args    []string
+	}{
+		{cmd: []string{}, targets: []string{}, args: []string{}},
+		{cmd: []string{"-b"}, targets: []string{}, args: []string{}},
+		{cmd: []string{"-b", "foo"}, targets: []string{"foo"}, args: []string{}},
+		{cmd: []string{"-b", "foo", "-i", "5"}, targets: []string{"foo"}, args: []string{}},
+		{cmd: []string{"foo", "-b", "-i", "5"}, targets: []string{"foo"}, args: []string{}},
+		{cmd: []string{"-b", "-i", "5", "foo"}, targets: []string{"foo"}, args: []string{}},
+		{cmd: []string{"-b", "foo", "bar", "-i", "5"}, targets: []string{"foo"}, args: []string{"bar", "-i", "5"}},
+		{cmd: []string{"foo", "bar", "-b", "-i", "5"}, targets: []string{"foo"}, args: []string{"bar", "-b", "-i", "5"}},
+		{cmd: []string{"-b", "-i", "5", "foo", "bar"}, targets: []string{"foo"}, args: []string{"bar"}},
+		{cmd: []string{"-i", "5"}, targets: []string{}, args: []string{}},
+		{cmd: []string{"-i", "5", "foo"}, targets: []string{"foo"}, args: []string{}},
+		{cmd: []string{"foo", "-i", "5"}, targets: []string{"foo"}, args: []string{}},
+		{cmd: []string{"-s", "foo"}, targets: []string{}, args: []string{}},
+		{cmd: []string{"-s", "foo", "bar"}, targets: []string{"bar"}, args: []string{}},
+		{cmd: []string{"--str=foo", "bar"}, targets: []string{"bar"}, args: []string{}},
+		{cmd: []string{"--str=", "bar"}, targets: []string{"bar"}, args: []string{}},
+		{cmd: []string{"baz", "-s", "foo", "bar"}, targets: []string{"baz"}, args: []string{"bar"}},
+		{cmd: []string{"baz", "--str=foo", "bar"}, targets: []string{"baz"}, args: []string{"bar"}},
+	}
+
+	for i, test := range tests {
+		p := libcfg.NewParser()
+		p.Configure(libcfg.Options{Targets: 1})
+		p.Bool("", "b", false, "")
+		p.Int("", "i", 0, "")
+		p.String("str", "s", "", "")
+
+		if err := p.RunArgs(test.cmd); err != nil {
+			t.Errorf("Case %d, error parsing args: %v", i, err)
+			continue
+		}
+
+		targets := p.Targets()
+
+		if len(test.targets) != len(targets) {
+			t.Errorf("Case %d, wrong size of targets: expected '%v', received '%v'", i, len(test.targets), len(targets))
+			continue
+		}
+
+		for j := 0; j < len(test.targets); j++ {
+			if targets[j] != test.targets[j] {
+				t.Errorf("Case %d, wrong target result at pos %d: expected '%v', received '%v'", i, j, test.targets[j], targets[j])
+			}
+		}
+
+		args := p.Args()
+
+		if len(test.args) != len(args) {
+			t.Errorf("Case %d, wrong size of rest arguments: expected '%v', received '%v'", i, len(test.args), len(args))
+			continue
+		}
+
+		for j := 0; j < len(test.args); j++ {
+			if args[j] != test.args[j] {
+				t.Errorf("Case %d, wrong args result at pos %d: expected '%v', received '%v'", i, j, test.args[j], args[j])
+			}
+		}
+	}
+}

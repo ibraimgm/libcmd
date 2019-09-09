@@ -9,6 +9,7 @@ import (
 type cfgParser struct {
 	options    Options
 	commands   map[string]*commandImpl
+	targets    []string
 	args       []string
 	optentries []*optEntry
 	shortopt   map[string]*optEntry
@@ -19,6 +20,7 @@ type cfgParser struct {
 func makeCfgParser() *cfgParser {
 	return &cfgParser{
 		commands:   make(map[string]*commandImpl),
+		targets:    make([]string, 0),
 		optentries: make([]*optEntry, 0),
 		shortopt:   make(map[string]*optEntry),
 		longopt:    make(map[string]*optEntry),
@@ -79,4 +81,8 @@ func (cfg *cfgParser) UseFile(envfile string) error {
 
 func (cfg *cfgParser) UseFiles(envfiles ...string) {
 	cfg.envLoader.UseFiles(envfiles...)
+}
+
+func (cfg *cfgParser) Targets() []string {
+	return cfg.targets
 }
