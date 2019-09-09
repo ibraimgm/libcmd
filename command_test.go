@@ -30,15 +30,15 @@ func TestCommandSelecting(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 
 		c11 := c1.AddCommand("c11", "command 1.1")
 		c12 := c1.AddCommand("c12", "command 1.2")
-		c2 := cfg.AddCommand("c2", "command 2")
+		c2 := p.AddCommand("c2", "command 2")
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error running parser: %v", i, err)
 			continue
 		}
@@ -59,7 +59,7 @@ func TestCommandSelecting(t *testing.T) {
 			t.Errorf("Case %d, 'used' flag for c2 expected to be '%v' but was '%v'", i, test.c2, c2.Used())
 		}
 
-		args := cfg.Args()
+		args := p.Args()
 
 		if len(args) != len(test.unparsed) {
 			t.Errorf("Case %d, wrong size of unparsed arguments: expected '%v', received '%v'", i, len(test.unparsed), len(args))
@@ -104,17 +104,17 @@ func TestCommandOneInheritAll(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		str := cfg.OptString("str", "s", "default", "")
-		b := cfg.OptBool("bool", "b", false, "")
+		str := p.String("str", "s", "default", "")
+		b := p.Bool("bool", "b", false, "")
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 		c1.InheritAll()
 
-		c2 := cfg.AddCommand("c2", "command 2")
+		c2 := p.AddCommand("c2", "command 2")
 
-		err := cfg.RunArgs(test.cmd)
+		err := p.RunArgs(test.cmd)
 		if test.expectError && err == nil {
 			t.Errorf("Case %d, should have returned error", i)
 			continue
@@ -172,18 +172,18 @@ func TestCommandPartialInherit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		str := cfg.OptString("str", "s", "default", "")
-		b := cfg.OptBool("bool", "b", false, "")
+		str := p.String("str", "s", "default", "")
+		b := p.Bool("bool", "b", false, "")
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 		c1.Inherit("s")
 
-		c2 := cfg.AddCommand("c2", "command 2")
+		c2 := p.AddCommand("c2", "command 2")
 		c2.Inherit("b")
 
-		err := cfg.RunArgs(test.cmd)
+		err := p.RunArgs(test.cmd)
 		if test.expectError && err == nil {
 			t.Errorf("Case %d, should have returned error", i)
 			continue
@@ -237,18 +237,18 @@ func TestCommandBothInheritAll(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		str := cfg.OptString("", "s", "default", "")
-		b := cfg.OptBool("bool", "b", false, "")
+		str := p.String("", "s", "default", "")
+		b := p.Bool("bool", "b", false, "")
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 		c1.InheritAll()
 
-		c2 := cfg.AddCommand("c2", "command 2")
+		c2 := p.AddCommand("c2", "command 2")
 		c2.InheritAll()
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error running parser: %v", i, err)
 			continue
 		}
@@ -295,16 +295,16 @@ func TestCommandInheritByName(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
-		aint := cfg.OptInt("aint", "", 8, "")
-		auint := cfg.OptUint("", "u", 16, "")
+		p := libcfg.NewParser()
+		aint := p.Int("aint", "", 8, "")
+		auint := p.Uint("", "u", 16, "")
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 		for _, opt := range test.toInherit {
 			c1.Inherit(opt)
 		}
 
-		err := cfg.RunArgs(test.cmd)
+		err := p.RunArgs(test.cmd)
 		if test.expectError && err == nil {
 			t.Errorf("Case %d, should have returned error", i)
 			continue
@@ -352,19 +352,19 @@ func TestCommandInheritOverride(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
-		s1 := cfg.OptString("s1", "", "s1", "")
-		s2 := cfg.OptString("s2", "", "s2", "")
+		p := libcfg.NewParser()
+		s1 := p.String("s1", "", "s1", "")
+		s2 := p.String("s2", "", "s2", "")
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 		c1.InheritAll()
-		c1s1 := c1.OptString("s1", "", "", "")
+		c1s1 := c1.String("s1", "", "", "")
 
-		c2 := cfg.AddCommand("c2", "command 2")
+		c2 := p.AddCommand("c2", "command 2")
 		c2.InheritAll()
-		c2s2 := c2.OptString("s2", "", "", "")
+		c2s2 := c2.String("s2", "", "", "")
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error running parser: %v", i, err)
 			continue
 		}
@@ -418,7 +418,7 @@ func TestCommandEnvInherit(t *testing.T) {
 		{cmd: []string{"--s1=a", "c1"}, env: map[string]string{"B": "b"}, file: map[string]string{"A": "a"}, s1: "a", s2: "s2"},
 		{cmd: []string{"--s1=d", "c1"}, env: map[string]string{"A": "a", "C": "c"}, file: map[string]string{"B": "b"}, s1: "d", s2: "s2"},
 		{cmd: []string{"--s2=x", "c1"}, env: map[string]string{}, file: map[string]string{}, s1: "s1", s2: "s2"},
-		{cmd: []string{"--s2=y", "c1"}, env: map[string]string{"X": "x"}, file: map[string]string{}, s1: "s1", s2: "x"},
+		{cmd: []string{"--s2=y", "c1"}, env: map[string]string{"X": "x"}, file: map[string]string{}, s1: "s1", s2: "x"}, /*14*/
 		{cmd: []string{"--s2=y", "c1"}, env: map[string]string{}, file: map[string]string{"X": "x"}, s1: "s1", s2: "x"},
 		{cmd: []string{"--s2=z", "c1"}, env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: "s1", s2: "y"},
 		{cmd: []string{"--s2=x", "c1"}, env: map[string]string{"X": "x", "Y": "y"}, file: map[string]string{"Z": "z"}, s1: "s1", s2: "z"},
@@ -446,13 +446,13 @@ func TestCommandEnvInherit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
-		s1 := cfg.EnvOptString("s1", "", "s1", "", "A", "B", "C")
-		cfg.OptString("s2", "", "", "") //don't care - will be overridden
+		p := libcfg.NewParser()
+		s1 := p.String("s1", "", "s1", "", "A", "B", "C")
+		p.String("s2", "", "", "") //don't care - will be overridden
 
-		c1 := cfg.AddCommand("c1", "command 1")
+		c1 := p.AddCommand("c1", "command 1")
 		c1.InheritAll()
-		s2 := c1.EnvOptString("s2", "", "s2", "", "X", "Y", "Z")
+		s2 := c1.String("s2", "", "s2", "", "X", "Y", "Z")
 
 		i := i       //pin
 		test := test //pin
@@ -463,7 +463,7 @@ func TestCommandEnvInherit(t *testing.T) {
 					t.Errorf("Case %d, error loading config file: %v", i, err)
 				}
 
-				if err := cfg.RunArgs(test.cmd); err != nil {
+				if err := p.RunArgs(test.cmd); err != nil {
 					t.Errorf("Case %d, error running parser: %v", i, err)
 					return
 				}

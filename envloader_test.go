@@ -53,7 +53,7 @@ func withFileEnv(env map[string]string, handler func(string)) {
 	handler(file.Name())
 }
 
-func TestParseEnvArgs(t *testing.T) {
+func TestEnv(t *testing.T) {
 	tests := []struct {
 		env      map[string]string
 		abool    bool
@@ -160,23 +160,20 @@ func TestParseEnvArgs(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		abool := cfg.EnvBool(false, "B1", "B2", "B3")
-		aint := cfg.EnvInt(0, "I1", "I2", "I3")
-		auint := cfg.EnvUint(0, "U1", "U2", "U3")
-		astring := cfg.EnvString("", "S1", "S2", "S3")
-		afloat32 := cfg.EnvFloat32(0, "F1", "F2")
-		afloat64 := cfg.EnvFloat64(0, "LF1", "LF2")
+		abool := env.Bool(false, "B1", "B2", "B3")
+		aint := env.Int(0, "I1", "I2", "I3")
+		auint := env.Uint(0, "U1", "U2", "U3")
+		astring := env.String("", "S1", "S2", "S3")
+		afloat32 := env.Float32(0, "F1", "F2")
+		afloat64 := env.Float64(0, "LF1", "LF2")
 
 		i := i       // pin scope
 		test := test // pin scope
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, error loading from environment: %v", i, err)
-				return
-			}
+			env.LoadAll()
 
 			if *abool != test.abool {
 				t.Errorf("Case %d, wrong boolean value: expected '%v', received '%v'", i, test.abool, *abool)
@@ -205,7 +202,7 @@ func TestParseEnvArgs(t *testing.T) {
 	}
 }
 
-func TestParseEnvDefault(t *testing.T) {
+func TestEnvDefault(t *testing.T) {
 	tests := []struct {
 		env     map[string]string
 		abool   bool
@@ -302,21 +299,18 @@ func TestParseEnvDefault(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		abool := cfg.EnvBool(true, "B1", "B2", "B3")
-		aint := cfg.EnvInt(8, "I1", "I2", "I3")
-		auint := cfg.EnvUint(16, "U1", "U2", "U3")
-		astring := cfg.EnvString("xyz", "S1", "S2", "S3")
+		abool := env.Bool(true, "B1", "B2", "B3")
+		aint := env.Int(8, "I1", "I2", "I3")
+		auint := env.Uint(16, "U1", "U2", "U3")
+		astring := env.String("xyz", "S1", "S2", "S3")
 
 		i := i       // pin scope
 		test := test // pin scope
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, error loading from environment: %v", i, err)
-				return
-			}
+			env.LoadAll()
 
 			if *abool != test.abool {
 				t.Errorf("Case %d, wrong boolean value: expected '%v', received '%v'", i, test.abool, *abool)
@@ -352,21 +346,18 @@ func TestEnvIntLimit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		a := cfg.EnvInt8(0, "A")
-		b := cfg.EnvInt16(0, "B")
-		c := cfg.EnvInt32(0, "C")
-		d := cfg.EnvInt64(0, "D")
+		a := env.Int8(0, "A")
+		b := env.Int16(0, "B")
+		c := env.Int32(0, "C")
+		d := env.Int64(0, "D")
 
 		i := i       //pin
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, loading env: %v", i, err)
-				return
-			}
+			env.LoadAll()
 
 			if *a != test.a {
 				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.a, *a)
@@ -402,21 +393,18 @@ func TestEnvUintLimit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		a := cfg.EnvUint8(0, "A")
-		b := cfg.EnvUint16(0, "B")
-		c := cfg.EnvUint32(0, "C")
-		d := cfg.EnvUint64(0, "D")
+		a := env.Uint8(0, "A")
+		b := env.Uint16(0, "B")
+		c := env.Uint32(0, "C")
+		d := env.Uint64(0, "D")
 
 		i := i       //pin
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, loading env: %v", i, err)
-				return
-			}
+			env.LoadAll()
 
 			if *a != test.a {
 				t.Errorf("Case %d, wrong value: expected '%v', received '%v'", i, test.a, *a)
@@ -437,7 +425,7 @@ func TestEnvUintLimit(t *testing.T) {
 	}
 }
 
-func TestParseEnvFileArgs(t *testing.T) {
+func TestEnvFile(t *testing.T) {
 	tests := []struct {
 		env     map[string]string
 		abool   bool
@@ -534,26 +522,23 @@ func TestParseEnvFileArgs(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		abool := cfg.EnvBool(false, "B1", "B2", "B3")
-		aint := cfg.EnvInt(0, "I1", "I2", "I3")
-		auint := cfg.EnvUint(0, "U1", "U2", "U3")
-		astring := cfg.EnvString("", "S1", "S2", "S3")
+		abool := env.Bool(false, "B1", "B2", "B3")
+		aint := env.Int(0, "I1", "I2", "I3")
+		auint := env.Uint(0, "U1", "U2", "U3")
+		astring := env.String("", "S1", "S2", "S3")
 
 		i := i       // pin scope
 		test := test // pin scope
 
 		withFileEnv(test.env, func(filename string) {
-			if err := cfg.UseFile(filename); err != nil {
+			if err := env.UseFile(filename); err != nil {
 				t.Errorf("Case %d, error loading file: %v", i, err)
 				return
 			}
 
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, error loading from environment: %v", i, err)
-				return
-			}
+			env.LoadAll()
 
 			if *abool != test.abool {
 				t.Errorf("Case %d, wrong boolean value: expected '%v', received '%v'", i, test.abool, *abool)
@@ -574,7 +559,7 @@ func TestParseEnvFileArgs(t *testing.T) {
 	}
 }
 
-func TestParseEnvFileDefault(t *testing.T) {
+func TestEnvFileDefault(t *testing.T) {
 	tests := []struct {
 		env     map[string]string
 		abool   bool
@@ -671,26 +656,23 @@ func TestParseEnvFileDefault(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		abool := cfg.EnvBool(true, "B1", "B2", "B3")
-		aint := cfg.EnvInt(8, "I1", "I2", "I3")
-		auint := cfg.EnvUint(16, "U1", "U2", "U3")
-		astring := cfg.EnvString("xyz", "S1", "S2", "S3")
+		abool := env.Bool(true, "B1", "B2", "B3")
+		aint := env.Int(8, "I1", "I2", "I3")
+		auint := env.Uint(16, "U1", "U2", "U3")
+		astring := env.String("xyz", "S1", "S2", "S3")
 
 		i := i       // pin scope
 		test := test // pin scope
 
 		withFileEnv(test.env, func(filename string) {
-			if err := cfg.UseFile(filename); err != nil {
+			if err := env.UseFile(filename); err != nil {
 				t.Errorf("Case %d, error loading file: %v", i, err)
 				return
 			}
 
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, error loading from environment: %v", i, err)
-				return
-			}
+			env.LoadAll()
 
 			if *abool != test.abool {
 				t.Errorf("Case %d, wrong boolean value: expected '%v', received '%v'", i, test.abool, *abool)
@@ -732,22 +714,20 @@ func TestEnvSpecialCases(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		a := cfg.EnvString("", "A")
+		a := env.String("", "A")
 
 		i := i       //pin
 		test := test //pin
 
 		withFileEnv(test.env, func(filename string) {
-			if err := cfg.UseFile(filename); err != nil {
+			if err := env.UseFile(filename); err != nil {
 				t.Errorf("Case %d, error loading file: %v", i, err)
 				return
 			}
 
-			if err := cfg.RunArgs(nil); err != nil {
-				t.Errorf("Case %d, error loading env: %v", i, err)
-			}
+			env.LoadAll()
 
 			if *a != test.result {
 				t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.result, *a)
@@ -756,7 +736,7 @@ func TestEnvSpecialCases(t *testing.T) {
 	}
 }
 
-func TestParseEnvMultipleFiles(t *testing.T) {
+func TestEnvMultipleFiles(t *testing.T) {
 	tests := []struct {
 		file1  map[string]string
 		file2  map[string]string
@@ -771,20 +751,18 @@ func TestParseEnvMultipleFiles(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		a := cfg.EnvString("default", "A1", "A2", "A3")
+		a := env.String("default", "A1", "A2", "A3")
 
 		i := i       //pin
 		test := test //pin
 
 		withFileEnv(test.file1, func(file1 string) {
 			withFileEnv(test.file2, func(file2 string) {
-				cfg.UseFiles(file1, "does-not-exist", file2)
+				env.UseFiles(file1, "does-not-exist", file2)
 
-				if err := cfg.RunArgs(nil); err != nil {
-					t.Errorf("Case %d, error loading env: %v", i, err)
-				}
+				env.LoadAll()
 
 				if *a != test.result {
 					t.Errorf("Case %d, wrong string value: expected '%s', received '%s'", i, test.result, *a)
@@ -794,7 +772,7 @@ func TestParseEnvMultipleFiles(t *testing.T) {
 	}
 }
 
-func TestParseEnvFileOnly(t *testing.T) {
+func TestEnvFileOnly(t *testing.T) {
 	tests := []struct {
 		env    map[string]string
 		file   map[string]string
@@ -810,24 +788,22 @@ func TestParseEnvFileOnly(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		env := libcfg.NewEnvLoader()
 
-		a := cfg.EnvString("default", "A1", "A2", "A3")
+		a := env.String("default", "A1", "A2", "A3")
 
 		i := i       //pin
 		test := test //pin
 
 		withEnv(test.env, func() {
 			withFileEnv(test.file, func(file string) {
-				cfg.UseEnv(false)
+				env.UseEnv(false)
 
-				if err := cfg.UseFile(file); err != nil {
+				if err := env.UseFile(file); err != nil {
 					t.Errorf("Case %d, error loading env from file: %v", i, err)
 				}
 
-				if err := cfg.RunArgs(nil); err != nil {
-					t.Errorf("Case %d, error loading env: %v", i, err)
-				}
+				env.LoadAll()
 
 				if *a != test.result {
 					t.Errorf("Case %d, wrong string value: expected '%s', received '%s'", i, test.result, *a)

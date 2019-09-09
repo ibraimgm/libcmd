@@ -9,7 +9,7 @@ import (
 	"github.com/ibraimgm/libcfg"
 )
 
-func TestParseOptArgs(t *testing.T) {
+func TestOpt(t *testing.T) {
 	tests := []struct {
 		cmd      []string
 		abool    bool
@@ -41,16 +41,16 @@ func TestParseOptArgs(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		abool := cfg.OptBool("abool", "b", false, "specifies a bool value")
-		aint := cfg.OptInt("aint", "i", 0, "specifies an int value")
-		auint := cfg.OptUint("auint", "u", 0, "specifies an uint value")
-		astring := cfg.OptString("astring", "s", "", "specifies a string value")
-		afloat32 := cfg.OptFloat32("afloat32", "f32", 0, "specifies a float32 value")
-		afloat64 := cfg.OptFloat64("afloat64", "f64", 0, "specifies a float64 value")
+		abool := p.Bool("abool", "b", false, "specifies a bool value")
+		aint := p.Int("aint", "i", 0, "specifies an int value")
+		auint := p.Uint("auint", "u", 0, "specifies an uint value")
+		astring := p.String("astring", "s", "", "specifies a string value")
+		afloat32 := p.Float32("afloat32", "f32", 0, "specifies a float32 value")
+		afloat64 := p.Float64("afloat64", "f64", 0, "specifies a float64 value")
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -79,7 +79,7 @@ func TestParseOptArgs(t *testing.T) {
 			t.Errorf("Case %d, wrong float64 value: expected '%v', received '%v'", i, test.afloat64, *afloat64)
 		}
 
-		args := cfg.Args()
+		args := p.Args()
 
 		if len(test.args) != len(args) {
 			t.Errorf("Case %d, wrong size of rest arguments: expected '%v', received '%v'", i, len(test.args), len(args))
@@ -94,7 +94,7 @@ func TestParseOptArgs(t *testing.T) {
 	}
 }
 
-func TestParseOptDefault(t *testing.T) {
+func TestOptDefault(t *testing.T) {
 	tests := []struct {
 		cmd      []string
 		abool    bool
@@ -123,16 +123,16 @@ func TestParseOptDefault(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		abool := cfg.OptBool("abool", "b", true, "specifies a bool value")
-		aint := cfg.OptInt("aint", "i", 8, "specifies an int value")
-		auint := cfg.OptUint("auint", "u", 16, "specifies an uint value")
-		astring := cfg.OptString("astring", "s", "default", "specifies a string value")
-		afloat32 := cfg.OptFloat32("afloat32", "f32", float32(3.14), "specifies a float32 value")
-		afloat64 := cfg.OptFloat64("afloat64", "f64", float64(3.1415), "specifies a float64 value")
+		abool := p.Bool("abool", "b", true, "specifies a bool value")
+		aint := p.Int("aint", "i", 8, "specifies an int value")
+		auint := p.Uint("auint", "u", 16, "specifies an uint value")
+		astring := p.String("astring", "s", "default", "specifies a string value")
+		afloat32 := p.Float32("afloat32", "f32", float32(3.14), "specifies a float32 value")
+		afloat64 := p.Float64("afloat64", "f64", float64(3.1415), "specifies a float64 value")
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -161,7 +161,7 @@ func TestParseOptDefault(t *testing.T) {
 			t.Errorf("Case %d, wrong float64 value: expected '%v', received '%v'", i, test.afloat64, *afloat64)
 		}
 
-		args := cfg.Args()
+		args := p.Args()
 
 		if len(test.args) != len(args) {
 			t.Errorf("Case %d, wrong size of rest arguments: expected '%v', received '%v'", i, len(test.args), len(args))
@@ -176,7 +176,7 @@ func TestParseOptDefault(t *testing.T) {
 	}
 }
 
-func TestParseOptError(t *testing.T) {
+func TestOptError(t *testing.T) {
 	tests := []struct {
 		cmd           []string
 		expectedError string
@@ -199,14 +199,14 @@ func TestParseOptError(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		cfg.OptBool("abool", "b", false, "specifies a bool value")
-		cfg.OptInt("aint", "i", 0, "specifies an int value")
-		cfg.OptUint("auint", "u", 0, "specifies an uint value")
-		cfg.OptString("astring", "s", "", "specifies a string value")
+		p.Bool("abool", "b", false, "specifies a bool value")
+		p.Int("aint", "i", 0, "specifies an int value")
+		p.Uint("auint", "u", 0, "specifies an uint value")
+		p.String("astring", "s", "", "specifies a string value")
 
-		err := cfg.RunArgs(test.cmd)
+		err := p.RunArgs(test.cmd)
 
 		if err == nil {
 			t.Errorf("Case %d, argument parsing should return error", i)
@@ -234,14 +234,14 @@ func TestOptIntLimit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		a := cfg.OptInt8("", "a", 0, "specifies a int8 value")
-		b := cfg.OptInt16("", "b", 0, "specifies a int16 value")
-		c := cfg.OptInt32("", "c", 0, "specifies a int32 value")
-		d := cfg.OptInt64("", "d", 0, "specifies a int64 value")
+		a := p.Int8("", "a", 0, "specifies a int8 value")
+		b := p.Int16("", "b", 0, "specifies a int16 value")
+		c := p.Int32("", "c", 0, "specifies a int32 value")
+		d := p.Int64("", "d", 0, "specifies a int64 value")
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -279,14 +279,14 @@ func TestOptUintLimit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		a := cfg.OptUint8("", "a", 0, "specifies a uint8 value")
-		b := cfg.OptUint16("", "b", 0, "specifies a uint16 value")
-		c := cfg.OptUint32("", "c", 0, "specifies a uint32 value")
-		d := cfg.OptUint64("", "d", 0, "specifies a uint64 value")
+		a := p.Uint8("", "a", 0, "specifies a uint8 value")
+		b := p.Uint16("", "b", 0, "specifies a uint16 value")
+		c := p.Uint32("", "c", 0, "specifies a uint32 value")
+		d := p.Uint64("", "d", 0, "specifies a uint64 value")
 
-		if err := cfg.RunArgs(test.cmd); err != nil {
+		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -329,18 +329,18 @@ func TestOptIntegerLimits(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		cfg.OptInt8("aint8", "", 0, "specifies a int8 value")
-		cfg.OptInt16("aint16", "", 0, "specifies a int16 value")
-		cfg.OptInt32("aint32", "", 0, "specifies a int32 value")
-		cfg.OptInt64("aint64", "", 0, "specifies a int64 value")
-		cfg.OptUint8("auint8", "", 0, "specifies a uint8 value")
-		cfg.OptUint16("auint16", "", 0, "specifies a uint16 value")
-		cfg.OptUint32("auint32", "", 0, "specifies a uint32 value")
-		cfg.OptUint64("auint64", "", 0, "specifies a uint64 value")
+		p.Int8("aint8", "", 0, "specifies a int8 value")
+		p.Int16("aint16", "", 0, "specifies a int16 value")
+		p.Int32("aint32", "", 0, "specifies a int32 value")
+		p.Int64("aint64", "", 0, "specifies a int64 value")
+		p.Uint8("auint8", "", 0, "specifies a uint8 value")
+		p.Uint16("auint16", "", 0, "specifies a uint16 value")
+		p.Uint32("auint32", "", 0, "specifies a uint32 value")
+		p.Uint64("auint64", "", 0, "specifies a uint64 value")
 
-		err := cfg.RunArgs(test.cmd)
+		err := p.RunArgs(test.cmd)
 
 		if err == nil {
 			t.Errorf("Case %d, argument parsing should return error", i)

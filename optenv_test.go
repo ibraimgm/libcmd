@@ -6,7 +6,7 @@ import (
 	"github.com/ibraimgm/libcfg"
 )
 
-func TestParseEnvOpt(t *testing.T) {
+func TestEnvOpt(t *testing.T) {
 	tests := []struct {
 		env      map[string]string
 		cmd      []string
@@ -41,20 +41,20 @@ func TestParseEnvOpt(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		abool := cfg.EnvOptBool("abool", "b", false, "", "B1", "B2")
-		astring := cfg.EnvOptString("astring", "s", "", "", "S1", "S2")
-		aint := cfg.EnvOptInt("aint", "i", 0, "", "I1", "I2")
-		auint := cfg.EnvOptUint("auint", "u", 0, "", "U1", "U2")
-		afloat32 := cfg.EnvOptFloat32("afloat32", "f32", 0, "", "F1")
-		afloat64 := cfg.EnvOptFloat64("afloat64", "f64", 0, "", "D1")
+		abool := p.Bool("abool", "b", false, "", "B1", "B2")
+		astring := p.String("astring", "s", "", "", "S1", "S2")
+		aint := p.Int("aint", "i", 0, "", "I1", "I2")
+		auint := p.Uint("auint", "u", 0, "", "U1", "U2")
+		afloat32 := p.Float32("afloat32", "f32", 0, "", "F1")
+		afloat64 := p.Float64("afloat64", "f64", 0, "", "D1")
 
 		i := i       //pin
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(test.cmd); err != nil {
+			if err := p.RunArgs(test.cmd); err != nil {
 				t.Errorf("Case %d, error running parser: %v", i, err)
 			}
 
@@ -85,7 +85,92 @@ func TestParseEnvOpt(t *testing.T) {
 	}
 }
 
-func TestParseEnvOptInt(t *testing.T) {
+func TestEnvOptFile(t *testing.T) {
+	tests := []struct {
+		env      map[string]string
+		cmd      []string
+		abool    bool
+		astring  string
+		aint     int
+		auint    uint
+		afloat32 float32
+		afloat64 float64
+	}{
+		{env: map[string]string{}, cmd: []string{}},
+		{
+			env:   map[string]string{"B1": "true", "S1": "foo", "I1": "5", "U1": "7", "F1": "3.14", "D1": "3.1415"},
+			cmd:   []string{},
+			abool: true, astring: "foo", aint: 5, auint: 7, afloat32: float32(3.14), afloat64: float64(3.1415),
+		},
+		{
+			env:   map[string]string{},
+			cmd:   []string{"-b", "-s", "foo", "-i", "5", "-u", "7"},
+			abool: true, astring: "foo", aint: 5, auint: 7,
+		},
+		{env: map[string]string{"B1": "true"}, cmd: []string{"--no-abool"}},
+		{env: map[string]string{"S1": "foo"}, cmd: []string{"-s", "bar"}, astring: "bar"},
+		{env: map[string]string{"S1": "foo", "S2": ""}, cmd: []string{}, astring: ""},
+		{env: map[string]string{"S1": "foo"}, cmd: []string{"--astring="}},
+		{env: map[string]string{"I1": "5", "I2": "aaaa"}, cmd: []string{}, aint: 5},
+		{env: map[string]string{"I1": "5", "I2": ""}, cmd: []string{"-i", "10"}, aint: 10},
+		{env: map[string]string{"I1": "5", "I2": ""}, cmd: []string{"-i", "10", "--aint", "15"}, aint: 15},
+		{env: map[string]string{"U1": "5", "U2": "aaaa"}, cmd: []string{}, auint: 5},
+		{env: map[string]string{"U1": "5", "U2": ""}, cmd: []string{"-u", "10"}, auint: 10},
+		{env: map[string]string{"U1": "5", "U2": ""}, cmd: []string{"-u", "10", "--auint", "15"}, auint: 15},
+	}
+
+	for i, test := range tests {
+		p := libcfg.NewParser()
+
+		abool := p.Bool("abool", "b", false, "", "B1", "B2")
+		astring := p.String("astring", "s", "", "", "S1", "S2")
+		aint := p.Int("aint", "i", 0, "", "I1", "I2")
+		auint := p.Uint("auint", "u", 0, "", "U1", "U2")
+		afloat32 := p.Float32("afloat32", "f32", 0, "", "F1")
+		afloat64 := p.Float64("afloat64", "f64", 0, "", "D1")
+
+		i := i       //pin
+		test := test //pin
+
+		withFileEnv(test.env, func(filename string) {
+			p.UseEnv(false)
+
+			if err := p.UseFile(filename); err != nil {
+				t.Errorf("Case %d, error loading env file: %v", i, err)
+			}
+
+			if err := p.RunArgs(test.cmd); err != nil {
+				t.Errorf("Case %d, error running parser: %v", i, err)
+			}
+
+			if *abool != test.abool {
+				t.Errorf("Case %d, wrong boolean value: expected '%v', received '%v'", i, test.abool, *abool)
+			}
+
+			if *aint != test.aint {
+				t.Errorf("Case %d, wrong int value: expected '%v', received '%v'", i, test.aint, *aint)
+			}
+
+			if *auint != test.auint {
+				t.Errorf("Case %d, wrong uint value: expected '%v', received '%v'", i, test.auint, *auint)
+			}
+
+			if *astring != test.astring {
+				t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.astring, *astring)
+			}
+
+			if *afloat32 != test.afloat32 {
+				t.Errorf("Case %d, wrong float32 value: expected '%v', received '%v'", i, test.afloat32, *afloat32)
+			}
+
+			if *afloat64 != test.afloat64 {
+				t.Errorf("Case %d, wrong float64 value: expected '%v', received '%v'", i, test.afloat64, *afloat64)
+			}
+		})
+	}
+}
+
+func TestEnvOptInt(t *testing.T) {
 	tests := []struct {
 		env map[string]string
 		cmd []string
@@ -134,18 +219,18 @@ func TestParseEnvOptInt(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		a := cfg.EnvOptInt8("int8", "a", 8, "", "A")
-		b := cfg.EnvOptInt16("int16", "b", 16, "", "B")
-		c := cfg.EnvOptInt32("int32", "c", 32, "", "C")
-		d := cfg.EnvOptInt64("int64", "d", 64, "", "D")
+		a := p.Int8("int8", "a", 8, "", "A")
+		b := p.Int16("int16", "b", 16, "", "B")
+		c := p.Int32("int32", "c", 32, "", "C")
+		d := p.Int64("int64", "d", 64, "", "D")
 
 		i := i       //pin
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(test.cmd); err != nil {
+			if err := p.RunArgs(test.cmd); err != nil {
 				t.Errorf("Case %d, error running parser: %v", i, err)
 			}
 
@@ -168,7 +253,7 @@ func TestParseEnvOptInt(t *testing.T) {
 	}
 }
 
-func TestParseEnvOptUint(t *testing.T) {
+func TestEnvOptUint(t *testing.T) {
 	tests := []struct {
 		env map[string]string
 		cmd []string
@@ -217,18 +302,18 @@ func TestParseEnvOptUint(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		cfg := libcfg.NewParser()
+		p := libcfg.NewParser()
 
-		a := cfg.EnvOptUint8("uint8", "a", 8, "", "A")
-		b := cfg.EnvOptUint16("uint16", "b", 16, "", "B")
-		c := cfg.EnvOptUint32("uint32", "c", 32, "", "C")
-		d := cfg.EnvOptUint64("uint64", "d", 64, "", "D")
+		a := p.Uint8("uint8", "a", 8, "", "A")
+		b := p.Uint16("uint16", "b", 16, "", "B")
+		c := p.Uint32("uint32", "c", 32, "", "C")
+		d := p.Uint64("uint64", "d", 64, "", "D")
 
 		i := i       //pin
 		test := test //pin
 
 		withEnv(test.env, func() {
-			if err := cfg.RunArgs(test.cmd); err != nil {
+			if err := p.RunArgs(test.cmd); err != nil {
 				t.Errorf("Case %d, error running parser: %v", i, err)
 			}
 

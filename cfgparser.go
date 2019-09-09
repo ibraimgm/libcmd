@@ -1,48 +1,44 @@
 package libcfg
 
-// CfgParser is a parser that can load configurations from the command line or the environment
-// variables.
-//
-// CfgParser implements all the methods on EnvOptParser, and extra methods that allows the
-// API user to run the parsing algorithm.
-//
-// You should never build an instance of CfgParser manually; to get a correctly configured and
-// ready to use instance, use the NewParser function.
-type CfgParser struct {
+import (
+	"os"
+)
+
+// parser that can load configurations from the command line or the environment variables.
+type cfgParser struct {
 	commands   map[string]*commandImpl
 	args       []string
 	optentries []*optEntry
 	shortopt   map[string]*optEntry
 	longopt    map[string]*optEntry
-	useEnv     bool
-	enventries []*envEntry
-	envvars    map[string]string
+	envLoader  *envLoaderImpl
 }
 
-// NewParser returns a new CfgParser, ready to be used.
-func NewParser() *CfgParser {
-	return &CfgParser{
+func makeCfgParser() *cfgParser {
+	return &cfgParser{
 		commands:   make(map[string]*commandImpl),
 		optentries: make([]*optEntry, 0),
 		shortopt:   make(map[string]*optEntry),
 		longopt:    make(map[string]*optEntry),
-		useEnv:     true,
-		enventries: make([]*envEntry, 0),
-		envvars:    make(map[string]string),
+		envLoader:  makeEnvLoader(),
 	}
 }
 
-func newSubParser(original *CfgParser) *CfgParser {
-	return NewParser()
+// NewParser returns a new cfgParser, ready to be used.
+func NewParser() RootParser {
+	return makeCfgParser()
 }
 
-// RunArgs loads all the configuration values according to
-// the settings of the current parser, but assumes the values
-// passed by args as command line arguments.
-//
-// Note that args must not include the program name
-func (cfg *CfgParser) RunArgs(args []string) error {
-	cfg.loadFromEnv()
+func newSubParser(original *cfgParser) *cfgParser {
+	return makeCfgParser()
+}
+
+func (cfg *cfgParser) Run() error {
+	return cfg.RunArgs(os.Args[1:])
+}
+
+func (cfg *cfgParser) RunArgs(args []string) error {
+	cfg.envLoader.LoadAll()
 
 	if err := cfg.doParse(args); err != nil {
 		return err
@@ -64,4 +60,16 @@ func (cfg *CfgParser) RunArgs(args []string) error {
 	}
 
 	return nil
+}
+
+func (cfg *cfgParser) UseEnv(shouldUse bool) {
+	cfg.envLoader.UseEnv(shouldUse)
+}
+
+func (cfg *cfgParser) UseFile(envfile string) error {
+	return cfg.envLoader.UseFile(envfile)
+}
+
+func (cfg *cfgParser) UseFiles(envfiles ...string) {
+	cfg.envLoader.UseFiles(envfiles...)
 }
