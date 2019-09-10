@@ -101,8 +101,6 @@ type OptParser interface {
 	// See Options for details.
 	Configure(options Options)
 
-	Targets() []string
-
 	UseFile(envfile string) error
 	UseFiles(envfiles ...string)
 

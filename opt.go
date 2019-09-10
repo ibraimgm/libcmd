@@ -136,16 +136,22 @@ func (cfg *cfgParser) doParse(args []string) error {
 
 		// if it is not a param...
 		if arg == nil {
-			// if we have targets to collect, we can continue...
-			if cfg.options.Targets > uint(len(cfg.targets)) {
-				cfg.targets = append(cfg.targets, args[i])
-				continue
+			// non-greedy behavior is to just bail out
+			if !cfg.options.Greedy {
+				cfg.args = args[i:]
+				return nil
 			}
 
-			// otherwise, break the parsing and collect
-			// the rest of the list
-			cfg.args = args[i:]
-			return nil
+			// is this a command? If so, let the command decide
+			// what to do later...
+			if _, ok := cfg.commands[args[i]]; ok {
+				cfg.args = args[i:]
+				return nil
+			}
+
+			// otherwise, let's just collect the value and move on...
+			cfg.greedyArgs = append(cfg.greedyArgs, args[i])
+			continue
 		}
 
 		// find the entry.

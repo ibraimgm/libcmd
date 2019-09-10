@@ -396,55 +396,68 @@ func TestOptStrict(t *testing.T) {
 	}
 }
 
-func TestOptTargets(t *testing.T) {
+func TestOptGreedy(t *testing.T) {
 	tests := []struct {
 		cmd     []string
-		targets []string
 		args    []string
+		abool   bool
+		aint    int
+		astring string
+		c1      bool
 	}{
-		{cmd: []string{}, targets: []string{}, args: []string{}},
-		{cmd: []string{"-b"}, targets: []string{}, args: []string{}},
-		{cmd: []string{"-b", "foo"}, targets: []string{"foo"}, args: []string{}},
-		{cmd: []string{"-b", "foo", "-i", "5"}, targets: []string{"foo"}, args: []string{}},
-		{cmd: []string{"foo", "-b", "-i", "5"}, targets: []string{"foo"}, args: []string{}},
-		{cmd: []string{"-b", "-i", "5", "foo"}, targets: []string{"foo"}, args: []string{}},
-		{cmd: []string{"-b", "foo", "bar", "-i", "5"}, targets: []string{"foo"}, args: []string{"bar", "-i", "5"}},
-		{cmd: []string{"foo", "bar", "-b", "-i", "5"}, targets: []string{"foo"}, args: []string{"bar", "-b", "-i", "5"}},
-		{cmd: []string{"-b", "-i", "5", "foo", "bar"}, targets: []string{"foo"}, args: []string{"bar"}},
-		{cmd: []string{"-i", "5"}, targets: []string{}, args: []string{}},
-		{cmd: []string{"-i", "5", "foo"}, targets: []string{"foo"}, args: []string{}},
-		{cmd: []string{"foo", "-i", "5"}, targets: []string{"foo"}, args: []string{}},
-		{cmd: []string{"-s", "foo"}, targets: []string{}, args: []string{}},
-		{cmd: []string{"-s", "foo", "bar"}, targets: []string{"bar"}, args: []string{}},
-		{cmd: []string{"--str=foo", "bar"}, targets: []string{"bar"}, args: []string{}},
-		{cmd: []string{"--str=", "bar"}, targets: []string{"bar"}, args: []string{}},
-		{cmd: []string{"baz", "-s", "foo", "bar"}, targets: []string{"baz"}, args: []string{"bar"}},
-		{cmd: []string{"baz", "--str=foo", "bar"}, targets: []string{"baz"}, args: []string{"bar"}},
+		{cmd: []string{}, args: []string{}},
+		{cmd: []string{"-b"}, args: []string{}, abool: true},
+		{cmd: []string{"-b", "foo"}, args: []string{"foo"}, abool: true},
+		{cmd: []string{"-b", "foo", "-i", "5"}, args: []string{"foo"}, abool: true, aint: 5},
+		{cmd: []string{"foo", "-b", "-i", "5"}, args: []string{"foo"}, abool: true, aint: 5},
+		{cmd: []string{"-b", "-i", "5", "foo"}, args: []string{"foo"}, abool: true, aint: 5},
+		{cmd: []string{"-b", "foo", "bar", "-i", "5"}, args: []string{"foo", "bar"}, abool: true, aint: 5},
+		{cmd: []string{"foo", "bar", "-b", "-i", "5"}, args: []string{"foo", "bar"}, abool: true, aint: 5},
+		{cmd: []string{"-b", "-i", "5", "foo", "bar"}, args: []string{"foo", "bar"}, abool: true, aint: 5},
+		{cmd: []string{"-i", "5"}, args: []string{}, aint: 5},
+		{cmd: []string{"-i", "5", "foo"}, args: []string{"foo"}, aint: 5},
+		{cmd: []string{"foo", "-i", "5"}, args: []string{"foo"}, aint: 5},
+		{cmd: []string{"-s", "foo"}, args: []string{}, astring: "foo"},
+		{cmd: []string{"-s", "foo", "bar"}, args: []string{"bar"}, astring: "foo"},
+		{cmd: []string{"--str=foo", "bar"}, args: []string{"bar"}, astring: "foo"},
+		{cmd: []string{"--str=", "bar"}, args: []string{"bar"}},
+		{cmd: []string{"baz", "-s", "foo", "bar"}, args: []string{"baz", "bar"}, astring: "foo"},
+		{cmd: []string{"baz", "--str=foo", "bar"}, args: []string{"baz", "bar"}, astring: "foo"},
+		{cmd: []string{"-b", "foo", "c1"}, args: []string{"foo"}, abool: true, c1: true},
+		{cmd: []string{"-b", "c1", "foo"}, args: []string{"foo"}, abool: true, c1: true},
+		{cmd: []string{"-s", "foo", "bar", "c1"}, args: []string{"bar"}, astring: "foo", c1: true},
+		{cmd: []string{"-s", "c1", "bar", "foo"}, args: []string{"bar", "foo"}, astring: "c1", c1: false},
+		{cmd: []string{"baz", "--str=foo", "bar", "c1", "baq"}, args: []string{"baz", "bar", "baq"}, astring: "foo", c1: true},
 	}
 
 	for i, test := range tests {
 		p := libcfg.NewParser()
-		p.Configure(libcfg.Options{Targets: 1})
-		p.Bool("", "b", false, "")
-		p.Int("", "i", 0, "")
-		p.String("str", "s", "", "")
+		p.Configure(libcfg.Options{Greedy: true})
+
+		abool := p.Bool("", "b", false, "")
+		aint := p.Int("", "i", 0, "")
+		astring := p.String("str", "s", "", "")
+		c1 := p.AddCommand("c1", "command 1")
 
 		if err := p.RunArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
 
-		targets := p.Targets()
-
-		if len(test.targets) != len(targets) {
-			t.Errorf("Case %d, wrong size of targets: expected '%v', received '%v'", i, len(test.targets), len(targets))
-			continue
+		if *abool != test.abool {
+			t.Errorf("Case %d, wrong boolean value: expected '%v', received '%v'", i, test.abool, *abool)
 		}
 
-		for j := 0; j < len(test.targets); j++ {
-			if targets[j] != test.targets[j] {
-				t.Errorf("Case %d, wrong target result at pos %d: expected '%v', received '%v'", i, j, test.targets[j], targets[j])
-			}
+		if *aint != test.aint {
+			t.Errorf("Case %d, wrong int value: expected '%v', received '%v'", i, test.aint, *aint)
+		}
+
+		if *astring != test.astring {
+			t.Errorf("Case %d, wrong string value: expected '%v', received '%v'", i, test.astring, *astring)
+		}
+
+		if c1.Used() != test.c1 {
+			t.Errorf("Case %d, wrong used value for command: expected '%v', received '%v'", i, test.c1, c1.Used())
 		}
 
 		args := p.Args()

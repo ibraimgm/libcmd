@@ -9,8 +9,8 @@ import (
 type cfgParser struct {
 	options    Options
 	commands   map[string]*commandImpl
-	targets    []string
 	args       []string
+	greedyArgs []string
 	optentries []*optEntry
 	shortopt   map[string]*optEntry
 	longopt    map[string]*optEntry
@@ -20,7 +20,8 @@ type cfgParser struct {
 func makeCfgParser() *cfgParser {
 	return &cfgParser{
 		commands:   make(map[string]*commandImpl),
-		targets:    make([]string, 0),
+		args:       make([]string, 0),
+		greedyArgs: make([]string, 0),
 		optentries: make([]*optEntry, 0),
 		shortopt:   make(map[string]*optEntry),
 		longopt:    make(map[string]*optEntry),
@@ -57,14 +58,20 @@ func (cfg *cfgParser) RunArgs(args []string) error {
 
 		if cmd, ok := cfg.commands[name]; ok {
 			newArgs, err := cmd.doRun(cfg.args[1:])
-
 			cfg.args = newArgs
-			return err
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	if len(cfg.args) > 0 && cfg.options.StrictParsing {
 		return fmt.Errorf("unknown argument: %s", cfg.args[0])
+	}
+
+	if len(cfg.greedyArgs) > 0 {
+		cfg.args = append(cfg.greedyArgs, cfg.args...)
 	}
 
 	return nil
@@ -81,10 +88,6 @@ func (cfg *cfgParser) UseFile(envfile string) error {
 
 func (cfg *cfgParser) UseFiles(envfiles ...string) {
 	cfg.envLoader.UseFiles(envfiles...)
-}
-
-func (cfg *cfgParser) Targets() []string {
-	return cfg.targets
 }
 
 func (cfg *cfgParser) Bind(i interface{}) error {

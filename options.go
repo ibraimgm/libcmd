@@ -18,18 +18,18 @@ type Options struct {
 	// By default, the parser only returns an error if an unknown argument is passed.
 	StrictParsing bool
 
-	// Number of (expected) 'target' params.
-	// Normally, when the parser finds a non-flag value, it stops the parsing. If
-	// you put value in Targets, the parser instead 'skips' the 'N' values that would
-	// finish the parser execution, collects theses values, and continue the parsing.
+	// When true, continue the parsing process until an error, a recognized command or the
+	// end of command-line options is reached.
+	//
+	// Normally, when the parser finds a non-flag value, it stops the parsing. When this option
+	// is set to true, the parser will 'ignore' the value and continue to parse the other options;
+	// the 'ignored' arguments are collected and (re)inserted at the start of Args().
 	//
 	// This is useful, for example, in this scenario:
 	// $ myapp file.md -o output.html
 	//
 	// In the example above, the parser would finish as soon as 'file.md' is encountered,
-	// leaving the (valid) arguments unparsed. By setting Targets as 1, the first non-flag
+	// leaving the (valid) arguments unparsed. By setting Greedy as true, the first non-flag
 	// argument is collected and the parsing continues.
-	//
-	// You can get the collected values using the Targets method.
-	Targets uint
+	Greedy bool
 }
