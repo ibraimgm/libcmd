@@ -81,8 +81,8 @@ func (entry *optEntry) setValue(arg *optArg) error {
 	}
 
 	if entry.val.isBool && arg.isNeg && arg.isEq {
-		b, _ := entry.val.ptrValue.(*bool)
-		*b = !*b
+		b := entry.val.refValue.Bool()
+		entry.val.refValue.SetBool(!b)
 	}
 
 	return nil
@@ -185,87 +185,87 @@ func (cfg *cfgParser) Args() []string {
 }
 
 func (cfg *cfgParser) StringP(target *string, long, short, defaultValue, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue, isStr: true}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) BoolP(target *bool, long, short string, defaultValue bool, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue, isBool: true}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) IntP(target *int, long, short string, defaultValue int, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Int8P(target *int8, long, short string, defaultValue int8, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Int16P(target *int16, long, short string, defaultValue int16, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Int32P(target *int32, long, short string, defaultValue int32, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Int64P(target *int64, long, short string, defaultValue int64, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) UintP(target *uint, long, short string, defaultValue uint, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Uint8P(target *uint8, long, short string, defaultValue uint8, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Uint16P(target *uint16, long, short string, defaultValue uint16, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Uint32P(target *uint32, long, short string, defaultValue uint32, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Uint64P(target *uint64, long, short string, defaultValue uint64, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Float32P(target *float32, long, short string, defaultValue float32, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) Float64P(target *float64, long, short string, defaultValue float64, help string, variables ...string) {
-	val := variant{ptrValue: target, defaultValue: defaultValue}
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: &val})
-	cfg.envLoader.addEnv(&val, variables)
+	val := newVariant(target, defaultValue)
+	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+	cfg.envLoader.addEnv(val, variables)
 }
 
 func (cfg *cfgParser) String(long, short, defaultValue, help string, variables ...string) *string {
