@@ -121,60 +121,75 @@ func (env *envLoaderImpl) UseFiles(envfiles ...string) {
 	}
 }
 
+func (env *envLoaderImpl) Bind(i interface{}) error {
+	data, err := collectBindings(i)
+	if err != nil {
+		return err
+	}
+
+	for _, d := range data {
+		if len(d.variables) > 0 {
+			env.addEnv(d.val, d.variables)
+		}
+	}
+
+	return nil
+}
+
 func (env *envLoaderImpl) StringP(target *string, defaultValue string, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) BoolP(target *bool, defaultValue bool, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) IntP(target *int, defaultValue int, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Int8P(target *int8, defaultValue int8, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Int16P(target *int16, defaultValue int16, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Int32P(target *int32, defaultValue int32, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Int64P(target *int64, defaultValue int64, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) UintP(target *uint, defaultValue uint, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Uint8P(target *uint8, defaultValue uint8, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Uint16P(target *uint16, defaultValue uint16, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Uint32P(target *uint32, defaultValue uint32, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Uint64P(target *uint64, defaultValue uint64, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Float32P(target *float32, defaultValue float32, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) Float64P(target *float64, defaultValue float64, variables ...string) {
-	env.addEnv(newVariant(target, defaultValue), variables)
+	env.addEnv(varFromInterface(target, defaultValue), variables)
 }
 
 func (env *envLoaderImpl) String(defaultValue string, variables ...string) *string {

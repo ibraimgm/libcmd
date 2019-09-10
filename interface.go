@@ -46,6 +46,9 @@ type EnvLoader interface {
 	// LoadAll loads all environment values in the associated pointers
 	LoadAll()
 
+	// Bind binds the struct fields to environment variables
+	Bind(i interface{}) error
+
 	StringP(target *string, defaultValue string, variables ...string)
 	BoolP(target *bool, defaultValue bool, variables ...string)
 	IntP(target *int, defaultValue int, variables ...string)
@@ -102,6 +105,9 @@ type OptParser interface {
 
 	UseFile(envfile string) error
 	UseFiles(envfiles ...string)
+
+	// Bind binds the struct fields to command-line options and/or environment variables
+	Bind(i interface{}) error
 
 	StringP(target *string, long, short, defaultValue, help string, variables ...string)
 	BoolP(target *bool, long, short string, defaultValue bool, help string, variables ...string)

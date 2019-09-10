@@ -86,3 +86,22 @@ func (cfg *cfgParser) UseFiles(envfiles ...string) {
 func (cfg *cfgParser) Targets() []string {
 	return cfg.targets
 }
+
+func (cfg *cfgParser) Bind(i interface{}) error {
+	data, err := collectBindings(i)
+	if err != nil {
+		return err
+	}
+
+	for _, d := range data {
+		if d.opt != nil {
+			cfg.addOpt(d.opt)
+		}
+
+		if d.variables != nil {
+			cfg.envLoader.addEnv(d.val, d.variables)
+		}
+	}
+
+	return nil
+}

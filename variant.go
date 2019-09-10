@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
 type variant struct {
@@ -16,7 +15,7 @@ type variant struct {
 	isOpt        bool
 }
 
-func newVariant(target, defaultValue interface{}) *variant {
+func varFromInterface(target, defaultValue interface{}) *variant {
 	ref := reflect.ValueOf(target)
 
 	if ref.Kind() == reflect.Ptr {
@@ -29,110 +28,27 @@ func newVariant(target, defaultValue interface{}) *variant {
 
 	def := reflect.ValueOf(defaultValue)
 
+	return varFromReflect(ref, def)
+}
+
+func varFromReflect(target, defaultValue reflect.Value) *variant {
 	return &variant{
-		refValue:     ref,
-		defaultValue: def,
-		isBool:       ref.Kind() == reflect.Bool,
-		isStr:        ref.Kind() == reflect.String,
+		refValue:     target,
+		defaultValue: defaultValue,
+		isBool:       target.Kind() == reflect.Bool,
+		isStr:        target.Kind() == reflect.String,
 	}
 }
 
 func (v *variant) setValue(value string) error {
-
-	switch v.refValue.Kind() {
-	case reflect.String:
-		v.refValue.SetString(value)
-
-	case reflect.Bool:
-		vv, err := strconv.ParseBool(value)
-		if err != nil {
-			return fmt.Errorf("'%v' is not a valid boolean value", value)
-		}
-		v.refValue.SetBool(vv)
-
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if err := v.setAsInt(value); err != nil {
-			return err
-		}
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if err := v.setAsUint(value); err != nil {
-			return err
-		}
-
-	case reflect.Float32, reflect.Float64:
-		if err := v.setAsFloat(value); err != nil {
-			return err
-		}
+	converted, err := valueAsKind(value, v.refValue.Kind(), v.refValue.Type())
+	if err != nil {
+		return err
 	}
+
+	v.refValue.Set(converted)
 
 	v.isSet = true
-	return nil
-}
-
-func (v *variant) setAsInt(value string) error {
-	name := v.refValue.Kind().String()
-	var size int
-
-	if name != "int" {
-		bitSize, err := strconv.ParseInt(strings.TrimPrefix(name, "int"), 10, 0)
-		if err != nil {
-			return fmt.Errorf("invalid integer type '%s' for value '%s'", name, value)
-		}
-
-		size = int(bitSize)
-	}
-
-	vv, err := strconv.ParseInt(value, 10, int(size))
-	if err != nil {
-		return fmt.Errorf("'%v' is not a valid %s value", value, name)
-	}
-
-	v.refValue.SetInt(vv)
-	return nil
-}
-
-func (v *variant) setAsUint(value string) error {
-	name := v.refValue.Kind().String()
-	var size int
-
-	if name != "uint" {
-		bitSize, err := strconv.ParseInt(strings.TrimPrefix(name, "uint"), 10, 0)
-		if err != nil {
-			return fmt.Errorf("invalid integer type '%s' for value '%s'", name, value)
-		}
-
-		size = int(bitSize)
-	}
-
-	vv, err := strconv.ParseUint(value, 10, size)
-	if err != nil {
-		return fmt.Errorf("'%v' is not a valid %s value", value, name)
-	}
-
-	v.refValue.SetUint(vv)
-	return nil
-}
-
-func (v *variant) setAsFloat(value string) error {
-	name := v.refValue.Kind().String()
-	var size int
-
-	switch name {
-	case "float32":
-		size = 32
-	case "float64":
-		size = 64
-	default:
-		return fmt.Errorf("invalid float type '%s' for value '%s'", name, value)
-	}
-
-	vv, err := strconv.ParseFloat(value, size)
-	if err != nil {
-		return fmt.Errorf("'%v' is not a valid %s value", value, name)
-	}
-
-	v.refValue.SetFloat(vv)
 	return nil
 }
 
@@ -149,4 +65,71 @@ func (v *variant) setToZero() {
 
 	zero := reflect.Zero(v.refValue.Type())
 	v.refValue.Set(zero)
+}
+
+// return the value converted to a *COMPATIBLE* kind, optionally casted to
+// an *EXACT* type
+func valueAsKind(value string, kind reflect.Kind, exactType reflect.Type) (reflect.Value, error) {
+	// used only for numeric types; 'simpler' types are returned directly
+	name := kind.String()
+	size := bitSizeOf(kind)
+	var parsed interface{}
+	var err error
+
+	switch kind {
+	case reflect.String:
+		return reflect.ValueOf(value), nil
+
+	case reflect.Bool:
+		vv, err := strconv.ParseBool(value)
+		if err != nil {
+			return reflect.Value{}, fmt.Errorf("'%v' is not a valid boolean value", value)
+		}
+		return reflect.ValueOf(vv), nil
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		parsed, err = strconv.ParseInt(value, 10, size)
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		parsed, err = strconv.ParseUint(value, 10, size)
+
+	case reflect.Float32, reflect.Float64:
+		parsed, err = strconv.ParseFloat(value, size)
+	}
+
+	if err != nil {
+		return reflect.Value{}, fmt.Errorf("'%v' is not a valid %s value", value, name)
+	}
+
+	if parsed == nil {
+		return reflect.Value{}, fmt.Errorf("unsupported type '%s' for value '%s'", name, value)
+	}
+
+	converted := reflect.ValueOf(parsed)
+
+	if exactType != nil {
+		converted = converted.Convert(exactType)
+	}
+
+	return converted, nil
+}
+
+// bit size of numeric types
+func bitSizeOf(kind reflect.Kind) int {
+	switch kind {
+	case reflect.Int8, reflect.Uint8:
+		return 8
+
+	case reflect.Int16, reflect.Uint16:
+		return 16
+
+	case reflect.Int32, reflect.Uint32, reflect.Float32:
+		return 32
+
+	case reflect.Int64, reflect.Uint64, reflect.Float64:
+		return 64
+
+	default:
+		return 0
+	}
 }
