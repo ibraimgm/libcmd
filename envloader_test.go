@@ -812,3 +812,56 @@ func TestEnvFileOnly(t *testing.T) {
 		})
 	}
 }
+
+func TestEnvKeepValue(t *testing.T) {
+	const keep = "keep"
+
+	tests := []struct {
+		env  map[string]string
+		file map[string]string
+		s1   string
+		s2   string
+	}{
+		{env: map[string]string{}, file: map[string]string{}, s1: keep, s2: "default"},
+		{env: map[string]string{"A": "a"}, file: map[string]string{}, s1: "a", s2: "default"},
+		{env: map[string]string{}, file: map[string]string{"A": "a"}, s1: "a", s2: "default"},
+		{env: map[string]string{"B": "b"}, file: map[string]string{"A": "a"}, s1: "b", s2: "default"},
+		{env: map[string]string{"C": "", "B": "b"}, file: map[string]string{"A": "a"}, s1: "", s2: "default"},
+		{env: map[string]string{}, file: map[string]string{}, s1: keep, s2: "default"},
+		{env: map[string]string{"X": "x"}, file: map[string]string{}, s1: keep, s2: "x"},
+		{env: map[string]string{}, file: map[string]string{"X": "x"}, s1: keep, s2: "x"},
+		{env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: keep, s2: "y"},
+		{env: map[string]string{"Z": "", "Y": "Y"}, file: map[string]string{"X": "x"}, s1: keep, s2: ""},
+	}
+
+	for i, test := range tests {
+		env := libcfg.NewEnvLoader()
+		s1 := env.String("", "A", "B", "C")
+		s2 := env.String("default", "X", "Y", "Z")
+
+		*s1 = keep
+		*s2 = ""
+
+		i := i       //pin
+		test := test //pin
+
+		withEnv(test.env, func() {
+			withFileEnv(test.file, func(file string) {
+				if err := env.UseFile(file); err != nil {
+					t.Errorf("Case %d, error loading file: %v", i, err)
+					return
+				}
+
+				env.LoadAll()
+
+				if *s1 != test.s1 {
+					t.Errorf("Case %d, error on string1 value: expected '%s', received '%s'", i, test.s1, *s1)
+				}
+
+				if *s2 != test.s2 {
+					t.Errorf("Case %d, error on string2 value: expected '%s', received '%s'", i, test.s2, *s2)
+				}
+			})
+		})
+	}
+}

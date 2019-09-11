@@ -335,3 +335,67 @@ func TestEnvOptUint(t *testing.T) {
 		})
 	}
 }
+
+func TestEnvOptKeepValue(t *testing.T) {
+	const keep = "keep"
+
+	tests := []struct {
+		cmd  []string
+		env  map[string]string
+		file map[string]string
+		s1   string
+		s2   string
+	}{
+		{env: map[string]string{}, file: map[string]string{}, s1: keep, s2: "default"},
+		{env: map[string]string{"A": "a"}, file: map[string]string{}, s1: "a", s2: "default"},
+		{env: map[string]string{}, file: map[string]string{"A": "a"}, s1: "a", s2: "default"},
+		{env: map[string]string{"B": "b"}, file: map[string]string{"A": "a"}, s1: "b", s2: "default"},
+		{env: map[string]string{"C": "", "B": "b"}, file: map[string]string{"A": "a"}, s1: "", s2: "default"},
+		{env: map[string]string{}, file: map[string]string{}, s1: keep, s2: "default"},
+		{env: map[string]string{"X": "x"}, file: map[string]string{}, s1: keep, s2: "x"},
+		{env: map[string]string{}, file: map[string]string{"X": "x"}, s1: keep, s2: "x"},
+		{env: map[string]string{"Y": "y"}, file: map[string]string{"X": "x"}, s1: keep, s2: "y"},
+		{env: map[string]string{"Z": "", "Y": "Y"}, file: map[string]string{"X": "x"}, s1: keep, s2: ""},
+		{cmd: []string{"-s1", "a"}, env: map[string]string{}, file: map[string]string{}, s1: "a", s2: "default"},
+		{cmd: []string{"--string1="}, env: map[string]string{"A": "a"}, file: map[string]string{}, s1: "", s2: "default"},
+		{cmd: []string{"--string1="}, env: map[string]string{}, file: map[string]string{"A": "a"}, s1: "", s2: "default"},
+		{cmd: []string{"--string1="}, env: map[string]string{"C": "c", "B": "b"}, file: map[string]string{"A": "a"}, s1: "", s2: "default"},
+		{cmd: []string{"-s2", "x"}, env: map[string]string{}, file: map[string]string{}, s1: keep, s2: "x"},
+		{cmd: []string{"--string2="}, env: map[string]string{}, file: map[string]string{}, s1: keep, s2: ""},
+		{cmd: []string{"--string2="}, env: map[string]string{}, file: map[string]string{"X": "x"}, s1: keep, s2: ""},
+		{cmd: []string{"--string2="}, env: map[string]string{"Z": "", "Y": "Y"}, file: map[string]string{"X": "x"}, s1: keep, s2: ""},
+	}
+
+	for i, test := range tests {
+		p := libcfg.NewParser()
+		s1 := p.String("string1", "s1", "", "", "A", "B", "C")
+		s2 := p.String("string2", "s2", "default", "", "X", "Y", "Z")
+
+		*s1 = keep
+		*s2 = ""
+
+		i := i       //pin
+		test := test //pin
+
+		withEnv(test.env, func() {
+			withFileEnv(test.file, func(file string) {
+				if err := p.UseFile(file); err != nil {
+					t.Errorf("Case %d, error loading file: %v", i, err)
+					return
+				}
+
+				if err := p.RunArgs(test.cmd); err != nil {
+					t.Errorf("Case %d, error running parser: %v", i, err)
+				}
+
+				if *s1 != test.s1 {
+					t.Errorf("Case %d, wrong string1 value: expected '%s', received '%s'", i, test.s1, *s1)
+				}
+
+				if *s2 != test.s2 {
+					t.Errorf("Case %d, wrong string2 value: expected '%s', received '%s'", i, test.s2, *s2)
+				}
+			})
+		})
+	}
+}

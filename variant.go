@@ -57,6 +57,15 @@ func (v *variant) useDefault() {
 		return
 	}
 
+	zero := reflect.Zero(v.refValue.Type())
+	defaultIsZero := zero.Interface() == v.defaultValue.Interface()
+	valueIsZero := zero.Interface() == v.refValue.Interface()
+
+	// if we have a value, and our default is zero, we keep it
+	if defaultIsZero && !valueIsZero {
+		return
+	}
+
 	v.refValue.Set(v.defaultValue)
 }
 

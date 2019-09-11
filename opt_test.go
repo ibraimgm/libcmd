@@ -474,3 +474,49 @@ func TestOptGreedy(t *testing.T) {
 		}
 	}
 }
+
+func TestOptKeepValue(t *testing.T) {
+	const keep = "keep"
+
+	tests := []struct {
+		cmd []string
+		s1  string
+		s2  string
+	}{
+		{cmd: []string{}, s1: keep, s2: "default"},
+		{cmd: []string{"-s1", "a"}, s1: "a", s2: "default"},
+		{cmd: []string{"--string1", "a"}, s1: "a", s2: "default"},
+		{cmd: []string{"--string1=a"}, s1: "a", s2: "default"},
+		{cmd: []string{"--string1="}, s1: "", s2: "default"},
+		{cmd: []string{"-s2", "x"}, s1: keep, s2: "x"},
+		{cmd: []string{"--string2", "x"}, s1: keep, s2: "x"},
+		{cmd: []string{"--string2=x"}, s1: keep, s2: "x"},
+		{cmd: []string{"--string2="}, s1: keep, s2: ""},
+		{cmd: []string{"-s1", "a", "-s2", "x"}, s1: "a", s2: "x"},
+		{cmd: []string{"--string1=", "-s2", "x"}, s1: "", s2: "x"},
+		{cmd: []string{"-s1", "a", "-s2", "x", "--string1="}, s1: "", s2: "x"},
+	}
+
+	for i, test := range tests {
+		p := libcfg.NewParser()
+
+		s1 := p.String("string1", "s1", "", "")
+		s2 := p.String("string2", "s2", "default", "")
+
+		*s1 = keep
+		*s2 = ""
+
+		if err := p.RunArgs(test.cmd); err != nil {
+			t.Errorf("Case %d, error parsing args: %v", i, err)
+			continue
+		}
+
+		if *s1 != test.s1 {
+			t.Errorf("Case %d, wrong string1 value: expected '%s', received '%s'", i, test.s1, *s1)
+		}
+
+		if *s2 != test.s2 {
+			t.Errorf("Case %d, wrong string2 value: expected '%s', received '%s'", i, test.s2, *s2)
+		}
+	}
+}
