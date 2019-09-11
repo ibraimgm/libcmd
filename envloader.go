@@ -102,10 +102,10 @@ func (env *envLoaderImpl) UseFile(envfile string) error {
 			continue
 		}
 
-		key := line[0:index]
-		value := line[index+1:]
+		key := strings.TrimSpace(line[0:index])
+		value := strings.TrimSpace(line[index+1:])
 
-		env.envvars[key] = strings.TrimRight(value, " ")
+		env.envvars[key] = value
 	}
 
 	if err := scanner.Err(); err != nil {

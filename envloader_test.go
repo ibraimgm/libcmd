@@ -700,7 +700,7 @@ func TestEnvSpecialCases(t *testing.T) {
 	}{
 		{env: map[string]string{"A": "foo"}, result: "foo"},
 		{env: map[string]string{"A": ""}, result: ""},
-		{env: map[string]string{"A": "   foo"}, result: "   foo"},
+		{env: map[string]string{"A": "   foo"}, result: "foo"},
 		{env: map[string]string{"A": "foo   "}, result: "foo"},
 		{env: map[string]string{"a": "foo"}, result: ""},
 		{env: map[string]string{"A=": "foo"}, result: "=foo"},
@@ -711,6 +711,7 @@ func TestEnvSpecialCases(t *testing.T) {
 		{env: map[string]string{"#A": "foo"}, result: ""},
 		{env: map[string]string{"A": "foo#bar"}, result: "foo"},
 		{env: map[string]string{"A": "foo #bar"}, result: "foo"},
+		{env: map[string]string{" A": "foo"}, result: "foo"},
 	}
 
 	for i, test := range tests {
