@@ -12,7 +12,6 @@ type variant struct {
 	isBool       bool
 	isStr        bool
 	isSet        bool
-	isOpt        bool
 }
 
 func varFromInterface(target, defaultValue interface{}) *variant {
@@ -67,13 +66,6 @@ func (v *variant) useDefault() {
 	}
 
 	v.refValue.Set(v.defaultValue)
-}
-
-func (v *variant) setToZero() {
-	v.isSet = true
-
-	zero := reflect.Zero(v.refValue.Type())
-	v.refValue.Set(zero)
 }
 
 // return the value converted to a *COMPATIBLE* kind, optionally casted to

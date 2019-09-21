@@ -89,74 +89,51 @@ func (entry *optEntry) setValue(arg *optArg) error {
 }
 
 // add and optentry to the parser
-func (cfg *cfgParser) addOpt(entry *optEntry) {
-	cfg.optentries = append(cfg.optentries, entry)
+func (cmd *Cmd) addOpt(entry *optEntry) {
+	if entry.short == "" && entry.long == "" {
+		return
+	}
+
+	cmd.optentries = append(cmd.optentries, entry)
 
 	if entry.short != "" {
-		cfg.shortopt["-"+entry.short] = entry
+		cmd.shortopt["-"+entry.short] = entry
 	}
 
 	if entry.long != "" {
-		cfg.longopt["--"+entry.long] = entry
+		cmd.longopt["--"+entry.long] = entry
 
 		if entry.val.isBool {
-			cfg.longopt["--no-"+entry.long] = entry
+			cmd.longopt["--no-"+entry.long] = entry
 		}
 	}
 }
 
 // find an entry (with '-' or '--')
-func (cfg *cfgParser) findOpt(entryName string) *optEntry {
-	if entry, ok := cfg.shortopt[entryName]; ok {
+func (cmd *Cmd) findOpt(entryName string) *optEntry {
+	if entry, ok := cmd.shortopt[entryName]; ok {
 		return entry
 	}
 
-	return cfg.longopt[entryName]
-}
-
-// try to find an entry by it's "canonical" name
-func (cfg *cfgParser) findByName(optName string) *optEntry {
-	if entry, ok := cfg.longopt["--"+optName]; ok {
-		return entry
-	}
-
-	if entry, ok := cfg.shortopt["-"+optName]; ok {
-		return entry
-	}
-
-	return nil
+	return cmd.longopt[entryName]
 }
 
 // parse all command-line arguments
-func (cfg *cfgParser) doParse(args []string) error {
+func (cmd *Cmd) doParse(args []string) error {
 	for i := 0; i < len(args); i++ {
 
 		// parse the current argument
 		arg := parseOptArg(args[i])
 
-		// if it is not a param...
+		// if it is an operand, bail out!
 		if arg == nil {
-			// non-greedy behavior is to just bail out
-			if !cfg.options.Greedy {
-				cfg.args = args[i:]
-				return nil
-			}
-
-			// is this a command? If so, let the command decide
-			// what to do later...
-			if _, ok := cfg.commands[args[i]]; ok {
-				cfg.args = args[i:]
-				return nil
-			}
-
-			// otherwise, let's just collect the value and move on...
-			cfg.greedyArgs = append(cfg.greedyArgs, args[i])
-			continue
+			cmd.args = args[i:]
+			return nil
 		}
 
 		// find the entry.
 		// if no entry exists, this argument is unknown
-		entry := cfg.findOpt(arg.name)
+		entry := cmd.findOpt(arg.name)
 		if entry == nil {
 			return fmt.Errorf("unknown argument: %s", arg.name)
 		}
@@ -179,181 +156,264 @@ func (cfg *cfgParser) doParse(args []string) error {
 		if err := entry.setValue(arg); err != nil {
 			return err
 		}
-		entry.val.isOpt = true
+	}
+
+	return nil
+}
+
+func (cmd *Cmd) doRun(args []string) error {
+	if err := cmd.doParse(args); err != nil {
+		if cmd.errHandler != nil {
+			err = cmd.errHandler(err)
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	for i := range cmd.optentries {
+		cmd.optentries[i].val.useDefault()
+	}
+
+	if cmd.match != nil {
+		cmd.match()
+	}
+
+	if len(cmd.args) >= 1 {
+		name := cmd.args[0]
+
+		if subCommand, ok := cmd.commands[name]; ok {
+			if subCommand.callback != nil {
+				subCommand.callback(subCommand)
+			}
+
+			err := subCommand.doRun(cmd.args[1:])
+			cmd.args = subCommand.args
+
+			return err
+		}
+	}
+
+	// leaf command
+	if cmd.run != nil {
+		return cmd.run()
 	}
 
 	return nil
 }
 
 // Args returns the remaining non-parsed command line arguments.
-func (cfg *cfgParser) Args() []string {
-	return cfg.args
+func (cmd *Cmd) Args() []string {
+	return cmd.args
 }
 
-func (cfg *cfgParser) StringP(target *string, long, short, defaultValue, help string, variables ...string) {
+// StringP defines a new string argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) StringP(target *string, long, short, defaultValue, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) BoolP(target *bool, long, short string, defaultValue bool, help string, variables ...string) {
+// BoolP defines a new bool argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) BoolP(target *bool, long, short string, defaultValue bool, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) IntP(target *int, long, short string, defaultValue int, help string, variables ...string) {
+// IntP defines a new int argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) IntP(target *int, long, short string, defaultValue int, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Int8P(target *int8, long, short string, defaultValue int8, help string, variables ...string) {
+// Int8P defines a new int8 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Int8P(target *int8, long, short string, defaultValue int8, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Int16P(target *int16, long, short string, defaultValue int16, help string, variables ...string) {
+// Int16P defines a new int16 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Int16P(target *int16, long, short string, defaultValue int16, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Int32P(target *int32, long, short string, defaultValue int32, help string, variables ...string) {
+// Int32P defines a new int32 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Int32P(target *int32, long, short string, defaultValue int32, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Int64P(target *int64, long, short string, defaultValue int64, help string, variables ...string) {
+// Int64P defines a new int64 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Int64P(target *int64, long, short string, defaultValue int64, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) UintP(target *uint, long, short string, defaultValue uint, help string, variables ...string) {
+// UintP defines a new uint argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) UintP(target *uint, long, short string, defaultValue uint, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Uint8P(target *uint8, long, short string, defaultValue uint8, help string, variables ...string) {
+// Uint8P defines a new uint8 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Uint8P(target *uint8, long, short string, defaultValue uint8, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Uint16P(target *uint16, long, short string, defaultValue uint16, help string, variables ...string) {
+// Uint16P defines a new uint16 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Uint16P(target *uint16, long, short string, defaultValue uint16, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Uint32P(target *uint32, long, short string, defaultValue uint32, help string, variables ...string) {
+// Uint32P defines a new uint32 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Uint32P(target *uint32, long, short string, defaultValue uint32, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Uint64P(target *uint64, long, short string, defaultValue uint64, help string, variables ...string) {
+// Uint64P defines a new uint64 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Uint64P(target *uint64, long, short string, defaultValue uint64, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Float32P(target *float32, long, short string, defaultValue float32, help string, variables ...string) {
+// Float32P defines a new float32 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Float32P(target *float32, long, short string, defaultValue float32, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) Float64P(target *float64, long, short string, defaultValue float64, help string, variables ...string) {
+// Float64P defines a new float64 argument. After parsing, the argument value
+// will be available in the specified pointer.
+func (cmd *Cmd) Float64P(target *float64, long, short string, defaultValue float64, help string) {
 	val := varFromInterface(target, defaultValue)
-	cfg.addOpt(&optEntry{long: long, short: short, help: help, val: val})
-	cfg.envLoader.addEnv(val, variables)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
-func (cfg *cfgParser) String(long, short, defaultValue, help string, variables ...string) *string {
+// String defines a new string argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) String(long, short, defaultValue, help string) *string {
 	target := new(string)
-	cfg.StringP(target, long, short, defaultValue, help, variables...)
+	cmd.StringP(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Bool(long, short string, defaultValue bool, help string, variables ...string) *bool {
+// Bool defines a new bool argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Bool(long, short string, defaultValue bool, help string) *bool {
 	target := new(bool)
-	cfg.BoolP(target, long, short, defaultValue, help, variables...)
+	cmd.BoolP(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Int(long, short string, defaultValue int, help string, variables ...string) *int {
+// Int defines a new int argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Int(long, short string, defaultValue int, help string) *int {
 	target := new(int)
-	cfg.IntP(target, long, short, defaultValue, help, variables...)
+	cmd.IntP(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Int8(long, short string, defaultValue int8, help string, variables ...string) *int8 {
+// Int8 defines a new int8 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Int8(long, short string, defaultValue int8, help string) *int8 {
 	target := new(int8)
-	cfg.Int8P(target, long, short, defaultValue, help, variables...)
+	cmd.Int8P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Int16(long, short string, defaultValue int16, help string, variables ...string) *int16 {
+// Int16 defines a new int16 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Int16(long, short string, defaultValue int16, help string) *int16 {
 	target := new(int16)
-	cfg.Int16P(target, long, short, defaultValue, help, variables...)
+	cmd.Int16P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Int32(long, short string, defaultValue int32, help string, variables ...string) *int32 {
+// Int32 defines a new int32 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Int32(long, short string, defaultValue int32, help string) *int32 {
 	target := new(int32)
-	cfg.Int32P(target, long, short, defaultValue, help, variables...)
+	cmd.Int32P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Int64(long, short string, defaultValue int64, help string, variables ...string) *int64 {
+// Int64 defines a new int64 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Int64(long, short string, defaultValue int64, help string) *int64 {
 	target := new(int64)
-	cfg.Int64P(target, long, short, defaultValue, help, variables...)
+	cmd.Int64P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Uint(long, short string, defaultValue uint, help string, variables ...string) *uint {
+// Uint defines a new uint argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Uint(long, short string, defaultValue uint, help string) *uint {
 	target := new(uint)
-	cfg.UintP(target, long, short, defaultValue, help, variables...)
+	cmd.UintP(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Uint8(long, short string, defaultValue uint8, help string, variables ...string) *uint8 {
+// Uint8 defines a new uint8 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Uint8(long, short string, defaultValue uint8, help string) *uint8 {
 	target := new(uint8)
-	cfg.Uint8P(target, long, short, defaultValue, help, variables...)
+	cmd.Uint8P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Uint16(long, short string, defaultValue uint16, help string, variables ...string) *uint16 {
+// Uint16 defines a new uint16 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Uint16(long, short string, defaultValue uint16, help string) *uint16 {
 	target := new(uint16)
-	cfg.Uint16P(target, long, short, defaultValue, help, variables...)
+	cmd.Uint16P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Uint32(long, short string, defaultValue uint32, help string, variables ...string) *uint32 {
+// Uint32 defines a new uint32 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Uint32(long, short string, defaultValue uint32, help string) *uint32 {
 	target := new(uint32)
-	cfg.Uint32P(target, long, short, defaultValue, help, variables...)
+	cmd.Uint32P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Uint64(long, short string, defaultValue uint64, help string, variables ...string) *uint64 {
+// Uint64 defines a new uint64 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Uint64(long, short string, defaultValue uint64, help string) *uint64 {
 	target := new(uint64)
-	cfg.Uint64P(target, long, short, defaultValue, help, variables...)
+	cmd.Uint64P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Float32(long, short string, defaultValue float32, help string, variables ...string) *float32 {
+// Float32 defines a new float32 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Float32(long, short string, defaultValue float32, help string) *float32 {
 	target := new(float32)
-	cfg.Float32P(target, long, short, defaultValue, help, variables...)
+	cmd.Float32P(target, long, short, defaultValue, help)
 	return target
 }
 
-func (cfg *cfgParser) Float64(long, short string, defaultValue float64, help string, variables ...string) *float64 {
+// Float64 defines a new float64 argument. After parsing, the argument value
+// will be available in the returned pointer.
+func (cmd *Cmd) Float64(long, short string, defaultValue float64, help string) *float64 {
 	target := new(float64)
-	cfg.Float64P(target, long, short, defaultValue, help, variables...)
+	cmd.Float64P(target, long, short, defaultValue, help)
 	return target
 }
