@@ -1,4 +1,4 @@
-package libcfg_test
+package libcmd_test
 
 import (
 	"math"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ibraimgm/libcfg"
+	"github.com/ibraimgm/libcmd"
 )
 
 func compareValue(t *testing.T, fixture int, a, b interface{}) {
@@ -63,7 +63,7 @@ func TestOpt(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		abool := app.Bool("abool", "b", false, "specifies a bool value")
 		aint := app.Int("aint", "i", 0, "specifies an int value")
@@ -116,7 +116,7 @@ func TestOptDefault(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		abool := app.Bool("abool", "b", true, "specifies a bool value")
 		aint := app.Int("aint", "i", 8, "specifies an int value")
@@ -163,7 +163,7 @@ func TestOptError(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		app.Bool("abool", "b", false, "specifies a bool value")
 		app.Int("aint", "i", 0, "specifies an int value")
@@ -198,7 +198,7 @@ func TestOptIntLimit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		a := app.Int8("", "a", 0, "specifies a int8 value")
 		b := app.Int16("", "b", 0, "specifies a int16 value")
@@ -232,7 +232,7 @@ func TestOptUintLimit(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		a := app.Uint8("", "a", 0, "specifies a uint8 value")
 		b := app.Uint16("", "b", 0, "specifies a uint16 value")
@@ -271,7 +271,7 @@ func TestOptIntegerLimits(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		app.Int8("aint8", "", 0, "specifies a int8 value")
 		app.Int16("aint16", "", 0, "specifies a int16 value")
@@ -318,7 +318,7 @@ func TestOptKeepValue(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		s1 := app.String("string1", "s1", "", "")
 		s2 := app.String("string2", "s2", "default", "")

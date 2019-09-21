@@ -1,4 +1,4 @@
-package libcfg
+package libcmd
 
 import (
 	"fmt"

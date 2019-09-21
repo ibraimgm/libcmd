@@ -1,9 +1,9 @@
-package libcfg_test
+package libcmd_test
 
 import (
 	"testing"
 
-	"github.com/ibraimgm/libcfg"
+	"github.com/ibraimgm/libcmd"
 )
 
 func TestSubCommand(t *testing.T) {
@@ -30,32 +30,32 @@ func TestSubCommand(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("app", "")
+		app := libcmd.NewApp("app", "")
 		var c1, c11, c12, c2 bool
 
 		i := i       //pin
 		test := test //pin
 
-		app.Command("c1", "", func(cmd *libcfg.Cmd) {
+		app.Command("c1", "", func(cmd *libcmd.Cmd) {
 			cmd.Match(func() {
 				c1 = true
 			})
 
-			cmd.Command("c11", "", func(cmd *libcfg.Cmd) {
+			cmd.Command("c11", "", func(cmd *libcmd.Cmd) {
 				cmd.Match(func() {
 					c11 = true
 					compareArgs(t, i, test.unparsed, cmd.Args())
 				})
 			})
 
-			cmd.Command("c12", "", func(cmd *libcfg.Cmd) {
+			cmd.Command("c12", "", func(cmd *libcmd.Cmd) {
 				cmd.Match(func() {
 					c12 = true
 				})
 			})
 		})
 
-		app.Command("c2", "", func(cmd *libcfg.Cmd) {
+		app.Command("c2", "", func(cmd *libcmd.Cmd) {
 			cmd.Match(func() {
 				c2 = true
 			})
@@ -103,14 +103,14 @@ func TestCommandArgReuse(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
 		var c1, c2 bool
 
 		str := app.String("str", "s", "default", "")
 		b := app.Bool("bool", "b", false, "")
 
-		app.Command("c1", "", func(cmd *libcfg.Cmd) {
+		app.Command("c1", "", func(cmd *libcmd.Cmd) {
 			cmd.StringP(str, "str", "s", *str, "")
 			cmd.BoolP(b, "bool", "b", *b, "")
 
@@ -119,7 +119,7 @@ func TestCommandArgReuse(t *testing.T) {
 			})
 		})
 
-		app.Command("c2", "", func(cmd *libcfg.Cmd) {
+		app.Command("c2", "", func(cmd *libcmd.Cmd) {
 			cmd.Match(func() {
 				c2 = true
 			})
@@ -171,7 +171,7 @@ func TestCommandArgSameName(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 		s1 := app.String("s1", "", "s1", "")
 		s2 := app.String("s2", "", "s2", "")
 
@@ -183,7 +183,7 @@ func TestCommandArgSameName(t *testing.T) {
 		c1s1 := new(string)
 		c2s2 := new(string)
 
-		app.Command("c1", "", func(cmd *libcfg.Cmd) {
+		app.Command("c1", "", func(cmd *libcmd.Cmd) {
 			c1s1 = cmd.String("s1", "", "", "")
 			cmd.StringP(s2, "s2", "", *s2, "")
 
@@ -192,7 +192,7 @@ func TestCommandArgSameName(t *testing.T) {
 			})
 		})
 
-		app.Command("c2", "", func(cmd *libcfg.Cmd) {
+		app.Command("c2", "", func(cmd *libcmd.Cmd) {
 			cmd.StringP(s1, "s1", "", *s1, "")
 			c2s2 = cmd.String("s2", "", "", "")
 
@@ -236,15 +236,15 @@ func TestRun(t *testing.T) {
 
 	for i, test := range tests {
 		var c1, c11, c2, c21 bool
-		app := libcfg.NewApp("", "")
+		app := libcmd.NewApp("", "")
 
-		app.Command("c1", "", func(cmd *libcfg.Cmd) {
+		app.Command("c1", "", func(cmd *libcmd.Cmd) {
 			cmd.Run(func() error {
 				c1 = true
 				return nil
 			})
 
-			cmd.Command("c11", "", func(cmd *libcfg.Cmd) {
+			cmd.Command("c11", "", func(cmd *libcmd.Cmd) {
 				cmd.Run(func() error {
 					c11 = true
 					return nil
@@ -252,13 +252,13 @@ func TestRun(t *testing.T) {
 			})
 		})
 
-		app.Command("c2", "", func(cmd *libcfg.Cmd) {
+		app.Command("c2", "", func(cmd *libcmd.Cmd) {
 			cmd.Run(func() error {
 				c2 = true
 				return nil
 			})
 
-			cmd.Command("c21", "", func(cmd *libcfg.Cmd) {
+			cmd.Command("c21", "", func(cmd *libcmd.Cmd) {
 				cmd.Run(func() error {
 					c21 = true
 					return nil
@@ -282,10 +282,10 @@ func TestNoMatch(t *testing.T) {
 	var s string
 	var c1 bool
 
-	app := libcfg.NewApp("", "")
+	app := libcmd.NewApp("", "")
 	app.StringP(&s, "", "", "xxxx", "")
 
-	app.Command("", "", func(cmd *libcfg.Cmd) {
+	app.Command("", "", func(cmd *libcmd.Cmd) {
 		c1 = true
 	})
 

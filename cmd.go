@@ -1,4 +1,4 @@
-package libcfg
+package libcmd
 
 // Cmd defines a (sub)command of the application.
 // Since commands cannot do much by themselves, you should create

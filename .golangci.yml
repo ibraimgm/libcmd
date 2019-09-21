@@ -11,7 +11,7 @@ linters-settings:
   gocyclo:
     min-complexity: 10
   goimports:
-    local-prefixes: github.com/ibraimgm/libcfg
+    local-prefixes: github.com/ibraimgm/libcmd
 
 linters:
   fast: true
