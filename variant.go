@@ -68,6 +68,15 @@ func (v *variant) useDefault() {
 	v.refValue.Set(v.defaultValue)
 }
 
+func (v *variant) defaultAsString() string {
+	zero := reflect.Zero(v.refValue.Type())
+
+	if zero.Interface() == v.defaultValue.Interface() {
+		return ""
+	}
+	return fmt.Sprintf("%v", v.defaultValue.Interface())
+}
+
 // return the value converted to a *COMPATIBLE* kind, optionally casted to
 // an *EXACT* type
 func valueAsKind(value string, kind reflect.Kind, exactType reflect.Type) (reflect.Value, error) {

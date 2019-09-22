@@ -1,0 +1,14 @@
+app - some brief description
+
+this is a very long description
+
+Options:
+
+  -h, --help
+      Show this help message.
+
+  -i, --aint
+      sets a int value
+
+  -s, --astring
+      sets a string value

@@ -15,15 +15,21 @@ type Cmd struct {
 	// The long description of the command
 	Long string
 
-	args       []string
-	optentries []*optEntry
-	shortopt   map[string]*optEntry
-	longopt    map[string]*optEntry
-	callback   CmdCallback
-	match      MatchCallback
-	run        RunCallback
-	errHandler ErrCallback
-	commands   map[string]*Cmd
+	// The text to be shown at the 'Usage' line of the help.
+	// Set this value to "-" to omit the usage line
+	Usage string
+
+	args        []string
+	optentries  []*optEntry
+	shortopt    map[string]*optEntry
+	longopt     map[string]*optEntry
+	callback    CmdCallback
+	match       MatchCallback
+	run         RunCallback
+	errHandler  ErrCallback
+	helpHandler HelpCallback
+	breadcrumbs string
+	commands    map[string]*Cmd
 }
 
 func newCmd() *Cmd {
@@ -50,6 +56,11 @@ func (cmd *Cmd) Command(name, brief string, callback CmdCallback) {
 	c.Name = name
 	c.Brief = brief
 	c.callback = callback
+	c.breadcrumbs = cmd.breadcrumbs + " " + cmd.Name
+
+	if _, ok := cmd.shortopt["-h"]; ok {
+		c.Bool("help", "h", false, "Show this help message.")
+	}
 
 	cmd.commands[c.Name] = c
 }

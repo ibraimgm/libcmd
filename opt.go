@@ -50,6 +50,19 @@ type optEntry struct {
 	val   *variant
 }
 
+func (entry *optEntry) helpHeader() string {
+	switch {
+	case entry.short != "" && entry.long != "":
+		return "-" + entry.short + ", --" + entry.long
+
+	case entry.short != "":
+		return "-" + entry.short
+
+	default:
+		return "--" + entry.long
+	}
+}
+
 // try to 'fix' the options that have a 'natural' default
 // value in command line. Examples:
 // -b        : assumes 'true' in case of a boolean entry
@@ -184,6 +197,8 @@ func (cmd *Cmd) doRun(args []string) error {
 		name := cmd.args[0]
 
 		if subCommand, ok := cmd.commands[name]; ok {
+			subCommand.helpHandler = cmd.helpHandler
+
 			if subCommand.callback != nil {
 				subCommand.callback(subCommand)
 			}
