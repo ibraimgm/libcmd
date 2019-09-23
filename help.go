@@ -16,28 +16,42 @@ import (
 //   2. In a multi-command scenario, when a given command has subcommands
 //      but does not have a Run callback;
 //
-// You can override/disable the behavior descirbed in (1) by
-// defining a flag with the same name; likewise, providing a Run callback
-// in the cases described by (2) will prevent the automatic help in those
-// scenarios.
+// In the case defined by (1), you can suppress this behavior by setting
+// the option SupressPrintHelpWhenSet. This will not call the help function when
+// '-h' or '--help' is passed, but the flags will still be defined if you have at
+// least one more flag defined. To suppress even the '-h' and '--help' flags
+// creation, set the SuppressHelpFlag option.
 //
-// If you need to override the actual text of the help, set the OnHelp
-// field of the associated App instance.
+// In the sceenario defined by (2), you can either define a Run callback for the
+// command or set the SuppressPrintHelpPartialCommand configuration option.
+//
+// Last, but not least, if you need to override the actual text of the help, set
+// the OnHelp field of the App options instance.
 func (cmd *Cmd) Help() {
-	cmd.PrintHelp(os.Stdout)
+	cmd.configure()
+	output := cmd.options.HelpOutput
+
+	if output == nil {
+		output = os.Stdout
+	}
+
+	cmd.PrintHelp(output)
 }
 
 // PrintHelp prints the help text to the specified writer.
 // It functions exactly like the Help method.
 func (cmd *Cmd) PrintHelp(writer io.Writer) {
-	if cmd.helpHandler != nil {
-		cmd.helpHandler(cmd, writer)
-	} else {
-		automaticHelp(cmd, writer)
-	}
+	cmd.options.OnHelp(cmd, writer)
 }
 
 func automaticHelp(cmd *Cmd, writer io.Writer) {
+	printHelpBrief(cmd, writer)
+	printHelpLong(cmd, writer)
+	printHelpOptions(cmd, writer)
+	printHelpCommands(cmd, writer)
+}
+
+func printHelpBrief(cmd *Cmd, writer io.Writer) {
 	fullname := strings.TrimSpace(cmd.breadcrumbs + " " + cmd.Name)
 
 	if cmd.Brief != "" {
@@ -45,51 +59,62 @@ func automaticHelp(cmd *Cmd, writer io.Writer) {
 	} else {
 		fmt.Fprintln(writer, fullname)
 	}
+}
 
+func printHelpLong(cmd *Cmd, writer io.Writer) {
 	if cmd.Long != "" {
 		fmt.Fprintf(writer, "\n%s\n", cmd.Long)
 	}
+}
 
-	if len(cmd.optentries) > 0 {
-		sort.Slice(cmd.optentries, func(i, j int) bool {
-			return cmd.optentries[i].helpHeader() < cmd.optentries[j].helpHeader()
-		})
+func printHelpOptions(cmd *Cmd, writer io.Writer) {
+	if len(cmd.optentries) == 0 {
+		return
+	}
+	sort.Slice(cmd.optentries, func(i, j int) bool {
+		return cmd.optentries[i].helpHeader() < cmd.optentries[j].helpHeader()
+	})
 
-		fmt.Fprintf(writer, "\nOptions:\n")
+	fmt.Fprintf(writer, "\nOptions:\n")
 
-		for _, entry := range cmd.optentries {
-			fmt.Fprintf(writer, "\n  %s", entry.helpHeader())
+	for _, entry := range cmd.optentries {
+		fmt.Fprintf(writer, "\n  %s", entry.helpHeader())
 
-			if defHelp := entry.val.defaultAsString(); defHelp != "" {
-				fmt.Fprintf(writer, " (default: %s)", defHelp)
-			}
+		if defHelp := entry.val.defaultAsString(); defHelp != "" {
+			fmt.Fprintf(writer, " (default: %s)", defHelp)
+		}
 
-			fmt.Fprintln(writer)
+		fmt.Fprintln(writer)
 
-			if entry.help != "" {
-				fmt.Fprintf(writer, "      %s\n", entry.help)
-			}
+		if entry.help != "" {
+			fmt.Fprintf(writer, "      %s\n", entry.help)
 		}
 	}
 
-	if len(cmd.commands) > 0 {
-		largest := 0
-		keys := make([]string, 0, len(cmd.commands))
+}
 
-		for k := range cmd.commands {
-			keys = append(keys, k)
+func printHelpCommands(cmd *Cmd, writer io.Writer) {
+	if len(cmd.commands) == 0 {
+		return
+	}
 
-			if len(k) > largest {
-				largest = len(k)
-			}
-		}
+	largest := 0
+	keys := make([]string, 0, len(cmd.commands))
 
-		sort.Strings(keys)
-		fmt.Fprintf(writer, "\nCommands:\n")
+	for k := range cmd.commands {
+		keys = append(keys, k)
 
-		for _, k := range keys {
-			c := cmd.commands[k]
-			fmt.Fprintf(writer, "  %-*s   %s\n", largest, c.Name, c.Brief)
+		if len(k) > largest {
+			largest = len(k)
 		}
 	}
+
+	sort.Strings(keys)
+	fmt.Fprintf(writer, "\nCommands:\n")
+
+	for _, k := range keys {
+		c := cmd.commands[k]
+		fmt.Fprintf(writer, "  %-*s   %s\n", largest, c.Name, c.Brief)
+	}
+
 }

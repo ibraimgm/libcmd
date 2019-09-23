@@ -27,9 +27,11 @@ type Cmd struct {
 	match       MatchCallback
 	run         RunCallback
 	errHandler  ErrCallback
-	helpHandler HelpCallback
 	breadcrumbs string
 	commands    map[string]*Cmd
+	parentCmd   *Cmd
+	configured  bool
+	options     Options
 }
 
 func newCmd() *Cmd {
@@ -57,10 +59,7 @@ func (cmd *Cmd) Command(name, brief string, callback CmdCallback) {
 	c.Brief = brief
 	c.callback = callback
 	c.breadcrumbs = cmd.breadcrumbs + " " + cmd.Name
-
-	if _, ok := cmd.shortopt["-h"]; ok {
-		c.Bool("help", "h", false, "Show this help message.")
-	}
+	c.parentCmd = cmd
 
 	cmd.commands[c.Name] = c
 }
@@ -80,4 +79,33 @@ func (cmd *Cmd) Run(callback RunCallback) {
 // Err registers a handler to be run when the parsing fails.
 func (cmd *Cmd) Err(handler ErrCallback) {
 	cmd.errHandler = handler
+}
+
+func (cmd *Cmd) configure() {
+	if cmd.configured {
+		return
+	}
+
+	if cmd.parentCmd != nil {
+		cmd.parentCmd.configure()
+		cmd.options = cmd.parentCmd.options
+	}
+
+	cmd.setupHelp()
+	cmd.configured = true
+}
+
+func (cmd *Cmd) setupHelp() {
+	if cmd.options.OnHelp == nil {
+		cmd.options.OnHelp = automaticHelp
+	}
+
+	// no automatic '-h' flag
+	if cmd.options.SuppressHelpFlag {
+		return
+	}
+
+	if (len(cmd.optentries) > 0 || len(cmd.commands) > 0) && cmd.shortopt["-h"] == nil {
+		cmd.Bool("help", "h", false, "Show this help message.")
+	}
 }

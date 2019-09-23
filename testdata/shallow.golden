@@ -1,3 +1,11 @@
 app add - Sums two numbers.
 
 Runs a computation that returns the sum of two specified numbers.
+
+Options:
+
+  -h, --help
+      Show this help message.
+
+Commands:
+  deep   A deep subcommand.

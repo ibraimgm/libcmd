@@ -36,6 +36,30 @@ type ErrCallback func(err error) error
 // HelpCallback is a callback that allows the user to customize the help text.
 type HelpCallback func(cmd *Cmd, out io.Writer)
 
+// Options defines the configuration options of the main
+// App instance. The zero value of this struct reflect the default
+// set of options.
+type Options struct {
+	// When true, the automatic creation of help flags will
+	// be suppressed.
+	SuppressHelpFlag bool
+
+	// When true, do not print the help automatically when a
+	// help flag is set
+	SupressPrintHelpWhenSet bool
+
+	// when true, do not print the help automatically when a command with
+	// subcommands and without a Run callback is executed
+	SuppressPrintHelpPartialCommand bool
+
+	// When set, redirect the help output to the specified writer.
+	// When it is nil, the help text will be printed to Stdout
+	HelpOutput io.Writer
+
+	// function that overrides the auto-generated help text.
+	OnHelp HelpCallback
+}
+
 // App defines the main application parser.
 // An application can define one or more command-line arguments to parse, as well
 // as define a chain of subcommands supported by the application.
@@ -43,9 +67,6 @@ type HelpCallback func(cmd *Cmd, out io.Writer)
 // To get a new instance of App, use the NewApp function.
 type App struct {
 	*Cmd
-
-	// function that overrides the auto-generated help text.
-	OnHelp HelpCallback
 }
 
 // NewApp returns a new instance of an app parser.
@@ -55,8 +76,7 @@ func NewApp(name, brief string) *App {
 	app.Cmd = newCmd()
 	app.Name = name
 	app.Brief = brief
-
-	app.Bool("help", "h", false, "Show this help message.")
+	app.options = Options{}
 
 	return &app
 }
@@ -70,11 +90,11 @@ func (app *App) Run() error {
 // RunArgs behave like run, but instead of looking to the command-line
 // arguments, it takes an array of arguments as parameters.
 func (app *App) RunArgs(args []string) error {
-	if app.OnHelp != nil {
-		app.helpHandler = app.OnHelp
-	} else {
-		app.helpHandler = automaticHelp
-	}
-
 	return app.doRun(args)
+}
+
+// Configure change the App settings to the specified options object.
+// Please see the Options struct documentation for details.
+func (app *App) Configure(options Options) {
+	app.options = options
 }

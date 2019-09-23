@@ -4,9 +4,11 @@ this is a very long description
 
 Options:
 
+  --aint
+      sets a int value
+
   -h, --help
       Show this help message.
 
-Commands:
-  add   Sums two numbers.
-  sub   Subtract two numbers.
+  -s
+      sets a string value

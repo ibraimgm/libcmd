@@ -175,6 +175,8 @@ func (cmd *Cmd) doParse(args []string) error {
 }
 
 func (cmd *Cmd) doRun(args []string) error {
+	cmd.configure()
+
 	if err := cmd.doParse(args); err != nil {
 		if cmd.errHandler != nil {
 			err = cmd.errHandler(err)
@@ -197,8 +199,6 @@ func (cmd *Cmd) doRun(args []string) error {
 		name := cmd.args[0]
 
 		if subCommand, ok := cmd.commands[name]; ok {
-			subCommand.helpHandler = cmd.helpHandler
-
 			if subCommand.callback != nil {
 				subCommand.callback(subCommand)
 			}
@@ -211,8 +211,44 @@ func (cmd *Cmd) doRun(args []string) error {
 	}
 
 	// leaf command
+	return cmd.runLeafCommand()
+}
+
+func (cmd *Cmd) runLeafCommand() error {
+	var showHelp bool
+
+	// check for the automatic handling of
+	// the '-h' and '--help' flags
+	if !cmd.options.SupressPrintHelpWhenSet {
+		arg := cmd.shortopt["-h"]
+		if arg == nil {
+			arg = cmd.longopt["--help"]
+		}
+
+		if arg != nil {
+			showHelp = arg.val.refValue.Bool()
+		}
+	}
+
+	if showHelp {
+		cmd.Help()
+		return nil
+	}
+
+	// actual command, as defined by the user
 	if cmd.run != nil {
 		return cmd.run()
+	}
+
+	// if i'm the main app, do not show the help
+	if cmd.parentCmd == nil {
+		return nil
+	}
+
+	// the last resort is to run the help if we're a "partial"
+	// subcommand
+	if !cmd.options.SuppressPrintHelpPartialCommand {
+		cmd.Help()
 	}
 
 	return nil
