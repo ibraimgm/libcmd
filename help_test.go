@@ -51,6 +51,24 @@ func TestNoBrief(t *testing.T) {
 	}
 }
 
+func TestNoUsage(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.Usage = "-"
+
+	if err := compareHelpOutput(app, libcmd.Options{}, []string{}, "testdata/nousage.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestCustomUsage(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.Usage = "my custom usage text"
+
+	if err := compareHelpOutput(app, libcmd.Options{}, []string{}, "testdata/usage.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestLong(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"

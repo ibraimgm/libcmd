@@ -47,6 +47,7 @@ func (cmd *Cmd) PrintHelp(writer io.Writer) {
 func automaticHelp(cmd *Cmd, writer io.Writer) {
 	printHelpBrief(cmd, writer)
 	printHelpLong(cmd, writer)
+	printHelpUsage(cmd, writer)
 	printHelpOptions(cmd, writer)
 	printHelpCommands(cmd, writer)
 }
@@ -65,6 +66,34 @@ func printHelpLong(cmd *Cmd, writer io.Writer) {
 	if cmd.Long != "" {
 		fmt.Fprintf(writer, "\n%s\n", cmd.Long)
 	}
+}
+
+func printHelpUsage(cmd *Cmd, writer io.Writer) {
+	// do not print usage line
+	if cmd.Usage == "-" {
+		return
+	}
+
+	// use a custom usage line
+	if cmd.Usage != "" {
+		fmt.Fprintf(writer, "\nUSAGE: %s\n", cmd.Usage)
+		return
+	}
+
+	// compute a usage line
+	usage := strings.TrimSpace(cmd.breadcrumbs + " " + cmd.Name)
+
+	if len(cmd.optentries) > 0 {
+		usage += " [OPTIONS...]"
+	}
+
+	if len(cmd.commands) > 0 {
+		usage += " COMMAND"
+	} else {
+		usage += " [OPERANDS...]"
+	}
+
+	fmt.Fprintf(writer, "\nUSAGE: %s\n", usage)
 }
 
 func printHelpOptions(cmd *Cmd, writer io.Writer) {

@@ -1,3 +1,5 @@
 app add deep - A deep subcommand.
 
 This is a deep subcommand.
+
+USAGE: app add deep [OPERANDS...]

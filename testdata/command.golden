@@ -2,6 +2,8 @@ app - some brief description
 
 this is a very long description
 
+USAGE: app [OPTIONS...] COMMAND
+
 Options:
 
   -h, --help
