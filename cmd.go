@@ -81,6 +81,24 @@ func (cmd *Cmd) Err(handler ErrCallback) {
 	cmd.errHandler = handler
 }
 
+// CommandMatch is a shortcut to Command() followed by Match() on the
+// provided command.
+func (cmd *Cmd) CommandMatch(name, brief string, callback MatchCallback) {
+	cmd.Command(name, brief, nil)
+	if c, ok := cmd.commands[name]; ok {
+		c.Match(callback)
+	}
+}
+
+// CommandRun is a shortcut to Command() followed by Run() on the
+// provided command.
+func (cmd *Cmd) CommandRun(name, brief string, callback RunCallback) {
+	cmd.Command(name, brief, nil)
+	if c, ok := cmd.commands[name]; ok {
+		c.Run(callback)
+	}
+}
+
 func (cmd *Cmd) configure() {
 	if cmd.configured {
 		return

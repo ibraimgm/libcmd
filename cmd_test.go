@@ -50,17 +50,13 @@ func TestSubCommand(t *testing.T) {
 				})
 			})
 
-			cmd.Command("c12", "", func(cmd *libcmd.Cmd) {
-				cmd.Match(func() {
-					c12 = true
-				})
+			cmd.CommandMatch("c12", "", func() {
+				c12 = true
 			})
 		})
 
-		app.Command("c2", "", func(cmd *libcmd.Cmd) {
-			cmd.Match(func() {
-				c2 = true
-			})
+		app.CommandMatch("c2", "", func() {
+			c2 = true
 		})
 
 		if err := app.RunArgs(test.cmd); err != nil {
@@ -248,11 +244,9 @@ func TestRun(t *testing.T) {
 				return nil
 			})
 
-			cmd.Command("c11", "", func(cmd *libcmd.Cmd) {
-				cmd.Run(func() error {
-					c11 = true
-					return nil
-				})
+			cmd.CommandRun("c11", "", func() error {
+				c11 = true
+				return nil
 			})
 		})
 
@@ -262,11 +256,9 @@ func TestRun(t *testing.T) {
 				return nil
 			})
 
-			cmd.Command("c21", "", func(cmd *libcmd.Cmd) {
-				cmd.Run(func() error {
-					c21 = true
-					return nil
-				})
+			cmd.CommandRun("c21", "", func() error {
+				c21 = true
+				return nil
 			})
 		})
 
