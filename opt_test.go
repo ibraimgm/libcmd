@@ -335,3 +335,37 @@ func TestOptKeepValue(t *testing.T) {
 		compareValue(t, i, test.s2, *s2)
 	}
 }
+
+func TestChoice(t *testing.T) {
+	tests := []struct {
+		cmd       []string
+		expected  string
+		expectErr bool
+	}{
+		{cmd: []string{}},
+		{cmd: []string{"-c", "foo"}, expected: "foo"},
+		{cmd: []string{"-c", "bar"}, expected: "bar"},
+		{cmd: []string{"-c", "baz"}, expected: "baz"},
+		{cmd: []string{"-c", "hey"}, expectErr: true},
+	}
+
+	for i, test := range tests {
+		app := libcmd.NewApp("", "")
+		s := app.Choice([]string{"foo", "bar", "baz"}, "", "c", "", "")
+
+		err := app.RunArgs(test.cmd)
+		if !test.expectErr && err != nil {
+			t.Errorf("Case %d, error parsing args: %v", i, err)
+			continue
+		}
+
+		if test.expectErr && err == nil {
+			t.Errorf("Case %d, expected error but none received", i)
+			continue
+		}
+
+		if *s != test.expected {
+			t.Errorf("Case %d, wrong value: expected '%s', received '%s'", i, test.expected, *s)
+		}
+	}
+}

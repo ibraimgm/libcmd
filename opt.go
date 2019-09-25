@@ -358,6 +358,22 @@ func (cmd *Cmd) Float64P(target *float64, long, short string, defaultValue float
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
+// CustomP defines a new argument with custom type. During parsing, the argument
+// is manipulated via Get and Set methods of the CustomArg interface.
+func (cmd *Cmd) CustomP(target CustomArg, long, short, defaultValue, help string) {
+	val := varFromCustom(target, defaultValue)
+	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
+}
+
+// ChoiceP defines a new string argument, ith tha values limited by choices.
+// After parsing, the argument value will be available in the specified pointer.
+//
+// If the defaultValue is always considered 'valid', even when not listed on
+// the choices parameter.
+func (cmd *Cmd) ChoiceP(target *string, choices []string, long, short, defaultValue, help string) {
+	cmd.CustomP(newChoice(target, choices), long, short, defaultValue, help)
+}
+
 // String defines a new string argument. After parsing, the argument value
 // will be available in the returned pointer.
 func (cmd *Cmd) String(long, short, defaultValue, help string) *string {
@@ -467,5 +483,16 @@ func (cmd *Cmd) Float32(long, short string, defaultValue float32, help string) *
 func (cmd *Cmd) Float64(long, short string, defaultValue float64, help string) *float64 {
 	target := new(float64)
 	cmd.Float64P(target, long, short, defaultValue, help)
+	return target
+}
+
+// Choice defines a new string argument, ith tha values limited by choices.
+// After parsing, the argument value will be available in the returned pointer.
+//
+// If the defaultValue is always considered 'valid', even when not listed on
+// the choices parameter.
+func (cmd *Cmd) Choice(choices []string, long, short, defaultValue, help string) *string {
+	target := new(string)
+	cmd.ChoiceP(target, choices, long, short, defaultValue, help)
 	return target
 }

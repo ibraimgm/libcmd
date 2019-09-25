@@ -39,7 +39,20 @@ func varFromReflect(target, defaultValue reflect.Value) *variant {
 	}
 }
 
+func varFromCustom(target CustomArg, defaultValue string) *variant {
+	return &variant{
+		refValue:     reflect.ValueOf(target),
+		defaultValue: reflect.ValueOf(defaultValue),
+		isStr:        true,
+	}
+}
+
 func (v *variant) setValue(value string) error {
+	if v.refValue.Type().Implements(customArgType) {
+		ca, _ := v.refValue.Interface().(CustomArg)
+		return ca.Set(value)
+	}
+
 	converted, err := valueAsKind(value, v.refValue.Kind(), v.refValue.Type())
 	if err != nil {
 		return err
@@ -53,6 +66,18 @@ func (v *variant) setValue(value string) error {
 
 func (v *variant) useDefault() {
 	if v.isSet {
+		return
+	}
+
+	if v.refValue.Type().Implements(customArgType) {
+		ca, _ := v.refValue.Interface().(CustomArg)
+
+		if ca.Get() == "" {
+			return
+		}
+
+		str := v.defaultValue.String()
+		ca.Set(str) //nolint: errcheck
 		return
 	}
 
