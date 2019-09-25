@@ -192,7 +192,7 @@ func (cmd *Cmd) doRun(args []string) error {
 	}
 
 	if cmd.match != nil {
-		cmd.match()
+		cmd.match(cmd)
 	}
 
 	if len(cmd.args) >= 1 {
@@ -237,7 +237,7 @@ func (cmd *Cmd) runLeafCommand() error {
 
 	// actual command, as defined by the user
 	if cmd.run != nil {
-		return cmd.run()
+		return cmd.run(cmd)
 	}
 
 	// if i'm the main app, do not show the help

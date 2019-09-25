@@ -39,23 +39,23 @@ func TestSubCommand(t *testing.T) {
 		test := test //pin
 
 		app.Command("c1", "", func(cmd *libcmd.Cmd) {
-			cmd.Match(func() {
+			cmd.Match(func(*libcmd.Cmd) {
 				c1 = true
 			})
 
 			cmd.Command("c11", "", func(cmd *libcmd.Cmd) {
-				cmd.Match(func() {
+				cmd.Match(func(*libcmd.Cmd) {
 					c11 = true
 					compareArgs(t, i, test.unparsed, cmd.Args())
 				})
 			})
 
-			cmd.CommandMatch("c12", "", func() {
+			cmd.CommandMatch("c12", "", func(*libcmd.Cmd) {
 				c12 = true
 			})
 		})
 
-		app.CommandMatch("c2", "", func() {
+		app.CommandMatch("c2", "", func(*libcmd.Cmd) {
 			c2 = true
 		})
 
@@ -113,13 +113,13 @@ func TestCommandArgReuse(t *testing.T) {
 			cmd.StringP(str, "str", "s", *str, "")
 			cmd.BoolP(b, "bool", "b", *b, "")
 
-			cmd.Match(func() {
+			cmd.Match(func(*libcmd.Cmd) {
 				c1 = true
 			})
 		})
 
 		app.Command("c2", "", func(cmd *libcmd.Cmd) {
-			cmd.Match(func() {
+			cmd.Match(func(*libcmd.Cmd) {
 				c2 = true
 			})
 
@@ -187,7 +187,7 @@ func TestCommandArgSameName(t *testing.T) {
 			c1s1 = cmd.String("s1", "", "", "")
 			cmd.StringP(s2, "s2", "", *s2, "")
 
-			cmd.Match(func() {
+			cmd.Match(func(*libcmd.Cmd) {
 				c1 = true
 			})
 		})
@@ -196,7 +196,7 @@ func TestCommandArgSameName(t *testing.T) {
 			cmd.StringP(s1, "s1", "", *s1, "")
 			c2s2 = cmd.String("s2", "", "", "")
 
-			cmd.Match(func() {
+			cmd.Match(func(*libcmd.Cmd) {
 				c2 = true
 			})
 		})
@@ -239,24 +239,24 @@ func TestRun(t *testing.T) {
 		app := libcmd.NewApp("", "")
 
 		app.Command("c1", "", func(cmd *libcmd.Cmd) {
-			cmd.Run(func() error {
+			cmd.Run(func(*libcmd.Cmd) error {
 				c1 = true
 				return nil
 			})
 
-			cmd.CommandRun("c11", "", func() error {
+			cmd.CommandRun("c11", "", func(*libcmd.Cmd) error {
 				c11 = true
 				return nil
 			})
 		})
 
 		app.Command("c2", "", func(cmd *libcmd.Cmd) {
-			cmd.Run(func() error {
+			cmd.Run(func(*libcmd.Cmd) error {
 				c2 = true
 				return nil
 			})
 
-			cmd.CommandRun("c21", "", func() error {
+			cmd.CommandRun("c21", "", func(*libcmd.Cmd) error {
 				c21 = true
 				return nil
 			})

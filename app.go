@@ -18,7 +18,7 @@ type CmdCallback func(cmd *Cmd)
 //
 // To run code when the final command is selected, take a look at the
 // Run function and the RunCallback type.
-type MatchCallback func()
+type MatchCallback func(cmd *Cmd)
 
 // RunCallback is a callback that runs when a specified command is invoked. This
 // callback only runs if the parsing did succeed.
@@ -26,7 +26,7 @@ type MatchCallback func()
 // You can safely assume that all parsed args are correctly loaded and no other
 // subcommands are pending. If you return an error value in this callback, it will be
 // available as a return to the Run or RunArgs on the App instance.
-type RunCallback func() error
+type RunCallback func(cmd *Cmd) error
 
 // ErrCallback is a callback that executes when the parser encounters an error.
 // If you wish to recover (or ignore) the error, return a nil value to force the parser
