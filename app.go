@@ -76,7 +76,6 @@ func NewApp(name, brief string) *App {
 	app.Cmd = newCmd()
 	app.Name = name
 	app.Brief = brief
-	app.options = Options{}
 
 	return &app
 }
@@ -91,10 +90,4 @@ func (app *App) Run() error {
 // arguments, it takes an array of arguments as parameters.
 func (app *App) RunArgs(args []string) error {
 	return app.doRun(args)
-}
-
-// Configure change the App settings to the specified options object.
-// Please see the Options struct documentation for details.
-func (app *App) Configure(options Options) {
-	app.options = options
 }

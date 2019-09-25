@@ -175,7 +175,7 @@ func (cmd *Cmd) doParse(args []string) error {
 }
 
 func (cmd *Cmd) doRun(args []string) error {
-	cmd.configure()
+	cmd.setupHelp()
 
 	if err := cmd.doParse(args); err != nil {
 		if cmd.errHandler != nil {
@@ -199,6 +199,7 @@ func (cmd *Cmd) doRun(args []string) error {
 		name := cmd.args[0]
 
 		if subCommand, ok := cmd.commands[name]; ok {
+			subCommand.Options = cmd.Options
 			if subCommand.callback != nil {
 				subCommand.callback(subCommand)
 			}
@@ -219,7 +220,7 @@ func (cmd *Cmd) runLeafCommand() error {
 
 	// check for the automatic handling of
 	// the '-h' and '--help' flags
-	if !cmd.options.SupressPrintHelpWhenSet {
+	if !cmd.Options.SupressPrintHelpWhenSet {
 		arg := cmd.shortopt["-h"]
 		if arg == nil {
 			arg = cmd.longopt["--help"]
@@ -247,7 +248,7 @@ func (cmd *Cmd) runLeafCommand() error {
 
 	// the last resort is to run the help if we're a "partial"
 	// subcommand
-	if !cmd.options.SuppressPrintHelpPartialCommand {
+	if !cmd.Options.SuppressPrintHelpPartialCommand {
 		cmd.Help()
 	}
 

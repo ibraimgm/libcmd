@@ -30,8 +30,7 @@ type Cmd struct {
 	breadcrumbs string
 	commands    map[string]*Cmd
 	parentCmd   *Cmd
-	configured  bool
-	options     Options
+	Options     Options
 }
 
 func newCmd() *Cmd {
@@ -99,27 +98,9 @@ func (cmd *Cmd) CommandRun(name, brief string, callback RunCallback) {
 	}
 }
 
-func (cmd *Cmd) configure() {
-	if cmd.configured {
-		return
-	}
-
-	if cmd.parentCmd != nil {
-		cmd.parentCmd.configure()
-		cmd.options = cmd.parentCmd.options
-	}
-
-	cmd.setupHelp()
-	cmd.configured = true
-}
-
 func (cmd *Cmd) setupHelp() {
-	if cmd.options.OnHelp == nil {
-		cmd.options.OnHelp = automaticHelp
-	}
-
 	// no automatic '-h' flag
-	if cmd.options.SuppressHelpFlag {
+	if cmd.Options.SuppressHelpFlag {
 		return
 	}
 

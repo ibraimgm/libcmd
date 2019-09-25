@@ -28,8 +28,7 @@ import (
 // Last, but not least, if you need to override the actual text of the help, set
 // the OnHelp field of the App options instance.
 func (cmd *Cmd) Help() {
-	cmd.configure()
-	output := cmd.options.HelpOutput
+	output := cmd.Options.HelpOutput
 
 	if output == nil {
 		output = os.Stdout
@@ -41,7 +40,13 @@ func (cmd *Cmd) Help() {
 // PrintHelp prints the help text to the specified writer.
 // It functions exactly like the Help method.
 func (cmd *Cmd) PrintHelp(writer io.Writer) {
-	cmd.options.OnHelp(cmd, writer)
+	handler := automaticHelp
+
+	if cmd.Options.OnHelp != nil {
+		handler = cmd.Options.OnHelp
+	}
+
+	handler(cmd, writer)
 }
 
 func automaticHelp(cmd *Cmd, writer io.Writer) {

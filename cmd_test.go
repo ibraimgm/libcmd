@@ -32,7 +32,7 @@ func TestSubCommand(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("app", "")
-		app.Configure(libcmd.Options{HelpOutput: ioutil.Discard})
+		app.Options.HelpOutput = ioutil.Discard
 		var c1, c11, c12, c2 bool
 
 		i := i       //pin
@@ -102,7 +102,7 @@ func TestCommandArgReuse(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
-		app.Configure(libcmd.Options{HelpOutput: ioutil.Discard})
+		app.Options.HelpOutput = ioutil.Discard
 
 		var c1, c2 bool
 
@@ -171,7 +171,7 @@ func TestCommandArgSameName(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
-		app.Configure(libcmd.Options{HelpOutput: ioutil.Discard})
+		app.Options.HelpOutput = ioutil.Discard
 		s1 := app.String("s1", "", "s1", "")
 		s2 := app.String("s2", "", "s2", "")
 
