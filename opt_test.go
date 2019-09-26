@@ -177,6 +177,10 @@ func TestOptError(t *testing.T) {
 			continue
 		}
 
+		if !libcmd.IsParserErr(err) {
+			t.Errorf("Case %d, error should be a parsing error", i)
+		}
+
 		if !strings.Contains(err.Error(), test.expectedError) {
 			t.Errorf("Case %d, expected error '%s', but got '%s'", i, test.expectedError, err.Error())
 		}
@@ -289,6 +293,10 @@ func TestOptIntegerLimits(t *testing.T) {
 			continue
 		}
 
+		if !libcmd.IsParserErr(err) {
+			t.Errorf("Case %d, should have returned a parser error", i)
+		}
+
 		if !strings.Contains(err.Error(), test.expectedError) {
 			t.Errorf("Case %d, expected error '%s', but got '%s'", i, test.expectedError, err.Error())
 		}
@@ -359,13 +367,125 @@ func TestChoice(t *testing.T) {
 			continue
 		}
 
-		if test.expectErr && err == nil {
-			t.Errorf("Case %d, expected error but none received", i)
-			continue
+		if test.expectErr {
+			if !libcmd.IsParserErr(err) {
+				t.Errorf("Case %d, expected error but none received", i)
+				continue
+			}
+
+			if !strings.Contains(err.Error(), "possible values") {
+				t.Errorf("Case %d, wrong error message received", i)
+				continue
+			}
 		}
 
 		if *s != test.expected {
 			t.Errorf("Case %d, wrong value: expected '%s', received '%s'", i, test.expected, *s)
 		}
+	}
+}
+
+func TestOperand(t *testing.T) {
+	tests := []struct {
+		cmd       []string
+		s         string
+		op        string
+		strict    bool
+		expectErr bool
+	}{
+		{cmd: []string{}},
+		{cmd: []string{"-s", "aaa"}, s: "aaa"},
+		{cmd: []string{"foo"}, op: "foo"},
+		{cmd: []string{"-s", "aaa", "foo"}, s: "aaa", op: "foo"},
+		{cmd: []string{"foo", "-s", "aaa"}, op: "foo"},
+		{cmd: []string{}, strict: true, expectErr: true},
+		{cmd: []string{"-s", "aaa"}, s: "aaa", strict: true, expectErr: true},
+		{cmd: []string{"foo"}, op: "foo", strict: true},
+		{cmd: []string{"-s", "aaa", "foo"}, s: "aaa", op: "foo", strict: true},
+		{cmd: []string{"foo", "-s", "aaa"}, op: "foo", strict: true, expectErr: true},
+	}
+
+	for i, test := range tests {
+		app := libcmd.NewApp("", "")
+		app.Options.StrictOperands = test.strict
+		s := app.String("", "s", "", "")
+		app.AddOperand("name", "")
+
+		err := app.RunArgs(test.cmd)
+		if !test.expectErr && err != nil {
+			t.Errorf("Case %d, error parsing args: %v", i, err)
+			continue
+		}
+
+		if test.expectErr {
+			if !libcmd.IsParserErr(err) {
+				t.Errorf("Case %d, expected error but none received", i)
+				continue
+			}
+
+			if !strings.Contains(err.Error(), "exactly") {
+				t.Errorf("Case %d, error should display the exact number of needed operands", i)
+			}
+		}
+
+		compareValue(t, i, test.s, *s)
+		compareValue(t, i, test.op, app.Operand("name"))
+	}
+}
+
+func TestOperandOptional(t *testing.T) {
+	tests := []struct {
+		cmd       []string
+		s         string
+		name      string
+		value     string
+		strict    bool
+		expectErr bool
+	}{
+		{cmd: []string{}},
+		{cmd: []string{"-s", "aaa"}, s: "aaa"},
+		{cmd: []string{"foo"}, name: "foo"},
+		{cmd: []string{"foo", "bar"}, name: "foo", value: "bar"},
+		{cmd: []string{"-s", "aaa", "foo"}, s: "aaa", name: "foo"},
+		{cmd: []string{"-s", "aaa", "foo", "bar"}, s: "aaa", name: "foo", value: "bar"},
+		{cmd: []string{"foo", "-s", "aaa"}, name: "foo", value: "-s"},
+		{cmd: []string{"foo", "bar", "-s", "aaa"}, name: "foo", value: "bar"},
+		{cmd: []string{}, strict: true, expectErr: true},
+		{cmd: []string{"-s", "aaa"}, s: "aaa", strict: true, expectErr: true},
+		{cmd: []string{"foo"}, name: "foo", strict: true},
+		{cmd: []string{"foo", "bar"}, name: "foo", value: "bar", strict: true},
+		{cmd: []string{"-s", "aaa", "foo"}, s: "aaa", name: "foo", strict: true},
+		{cmd: []string{"-s", "aaa", "foo", "bar"}, s: "aaa", name: "foo", value: "bar", strict: true},
+		{cmd: []string{"foo", "-s", "aaa"}, name: "foo", value: "-s", strict: true},
+		{cmd: []string{"foo", "bar", "-s", "aaa"}, name: "foo", value: "bar", strict: true},
+	}
+
+	for i, test := range tests {
+		app := libcmd.NewApp("", "")
+		app.Options.StrictOperands = test.strict
+		s := app.String("", "s", "", "")
+		app.AddOperand("name", "")
+		app.AddOperand("value", "?")
+
+		err := app.RunArgs(test.cmd)
+		if !test.expectErr && err != nil {
+			t.Errorf("Case %d, error parsing args: %v", i, err)
+			continue
+		}
+
+		if test.expectErr {
+			if !libcmd.IsParserErr(err) {
+				t.Errorf("Case %d, expected error but none received", i)
+				continue
+			}
+
+			if !strings.Contains(err.Error(), "at least") {
+				t.Errorf("Case %d, error should display the approximate number of needed operands", i)
+			}
+		}
+
+		compareValue(t, i, test.s, *s)
+		compareValue(t, i, test.name, app.Operand("name"))
+		compareValue(t, i, test.value, app.Operand("value"))
 	}
 }

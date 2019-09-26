@@ -48,15 +48,19 @@ type Options struct {
 	// help flag is set
 	SupressPrintHelpWhenSet bool
 
-	// when true, do not print the help automatically when a command with
+	// When true, do not print the help automatically when a command with
 	// subcommands and without a Run callback is executed
 	SuppressPrintHelpPartialCommand bool
+
+	// When true, returns an parsing error when the number of operands does not match
+	// the expected number of required operands (optional and repeated operands are ignored).
+	StrictOperands bool
 
 	// When set, redirect the help output to the specified writer.
 	// When it is nil, the help text will be printed to Stdout
 	HelpOutput io.Writer
 
-	// function that overrides the auto-generated help text.
+	// Function that overrides the auto-generated help text.
 	OnHelp HelpCallback
 }
 

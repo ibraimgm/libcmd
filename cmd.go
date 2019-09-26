@@ -1,5 +1,10 @@
 package libcmd
 
+type operand struct {
+	name     string
+	modifier string
+}
+
 // Cmd defines a (sub)command of the application.
 // Since commands cannot do much by themselves, you should create
 // your commands by calling the Command method in the App instance.
@@ -19,6 +24,9 @@ type Cmd struct {
 	// Set this value to "-" to omit the usage line
 	Usage string
 
+	// Options for this command
+	Options Options
+
 	args        []string
 	optentries  []*optEntry
 	shortopt    map[string]*optEntry
@@ -30,7 +38,7 @@ type Cmd struct {
 	breadcrumbs string
 	commands    map[string]*Cmd
 	parentCmd   *Cmd
-	Options     Options
+	operands    []operand
 }
 
 func newCmd() *Cmd {
@@ -96,6 +104,34 @@ func (cmd *Cmd) CommandRun(name, brief string, callback RunCallback) {
 	if c, ok := cmd.commands[name]; ok {
 		c.Run(callback)
 	}
+}
+
+// AddOperand documents an expected operand.
+// The modifier parameter can be either '?' for optional operands or '*'
+// for repeating ones. The documentation is printed in the order that
+// was used to add the operands, so it is advisable to put them in an order
+// that makes sense for the user (required, optional and repeating, in this order).
+//
+// Note that this modifier is used only for documentation purposes; no special validation
+// is done, except by the one documented in Options.StrictOperands.
+func (cmd *Cmd) AddOperand(name string, modifer string) {
+	cmd.operands = append(cmd.operands, operand{name: name, modifier: modifer})
+}
+
+// Operand returns the value of the named operand, if any.
+// When specified using AddOperand, each unparsed arg is considered an operand and it's
+// value is fetched - but not consumed -  from the Args() method.
+//
+// The behavior of this function is only guaranteed when used in a 'leaf' command or
+// and Run() callback.
+func (cmd *Cmd) Operand(name string) string {
+	for i, op := range cmd.operands {
+		if op.name == name && i < len(cmd.args) {
+			return cmd.args[i]
+		}
+	}
+
+	return ""
 }
 
 func (cmd *Cmd) setupHelp() {

@@ -121,7 +121,7 @@ func valueAsKind(value string, kind reflect.Kind, exactType reflect.Type) (refle
 	case reflect.Bool:
 		vv, err := strconv.ParseBool(value)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("'%v' is not a valid boolean value", value)
+			return reflect.Value{}, conversionErr{value: value, typeName: "boolean"}
 		}
 		return reflect.ValueOf(vv), nil
 
@@ -136,11 +136,11 @@ func valueAsKind(value string, kind reflect.Kind, exactType reflect.Type) (refle
 	}
 
 	if err != nil {
-		return reflect.Value{}, fmt.Errorf("'%v' is not a valid %s value", value, name)
+		return reflect.Value{}, conversionErr{value: value, typeName: name}
 	}
 
 	if parsed == nil {
-		return reflect.Value{}, fmt.Errorf("unsupported type '%s' for value '%s'", name, value)
+		return reflect.Value{}, unsupportedErr{value: value, typeName: name}
 	}
 
 	converted := reflect.ValueOf(parsed)

@@ -154,7 +154,7 @@ func TestGetChoice(t *testing.T) {
 			continue
 		}
 
-		if test.expectErr && err == nil {
+		if test.expectErr && !libcmd.IsParserErr(err) {
 			t.Errorf("Case %d, expected error but none received", i)
 			continue
 		}

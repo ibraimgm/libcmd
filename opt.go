@@ -1,7 +1,6 @@
 package libcmd
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -86,11 +85,11 @@ func (entry *optEntry) setValue(arg *optArg) error {
 	// the option '--string=' is the only case where
 	// an empty value should be accepted
 	if arg.value == "" && !(entry.val.isStr && arg.isEq) {
-		return fmt.Errorf("no value for argument: %s", arg.name)
+		return noValueErr{arg: arg.name}
 	}
 
 	if err := entry.val.setValue(arg.value); err != nil {
-		return fmt.Errorf("error parsing argument '%s': %v", arg.name, err)
+		return parserError{arg: arg.name, err: err}
 	}
 
 	if entry.val.isBool && arg.isNeg && arg.isEq {
@@ -148,7 +147,7 @@ func (cmd *Cmd) doParse(args []string) error {
 		// if no entry exists, this argument is unknown
 		entry := cmd.findOpt(arg.name)
 		if entry == nil {
-			return fmt.Errorf("unknown argument: %s", arg.name)
+			return unknownArgErr{arg: arg.name}
 		}
 
 		// some argument types have autmatic values in certain cases
@@ -159,7 +158,7 @@ func (cmd *Cmd) doParse(args []string) error {
 		// long params with '=' should not be considered
 		if !arg.isEq && arg.value == "" {
 			if i+1 == len(args) {
-				return fmt.Errorf("no value for argument: %s", arg.name)
+				return noValueErr{arg: arg.name}
 			}
 
 			arg.value = args[i+1]
@@ -236,6 +235,11 @@ func (cmd *Cmd) runLeafCommand() error {
 		return nil
 	}
 
+	// check for operands
+	if err := cmd.checkOperands(); err != nil {
+		return err
+	}
+
 	// actual command, as defined by the user
 	if cmd.run != nil {
 		return cmd.run(cmd)
@@ -252,6 +256,38 @@ func (cmd *Cmd) runLeafCommand() error {
 		cmd.Help()
 	}
 
+	return nil
+}
+
+func (cmd *Cmd) checkOperands() error {
+	// if we're permissive, there's nothing to do
+	if !cmd.Options.StrictOperands {
+		return nil
+	}
+
+	// consider only the required ones
+	var need int
+	var hasOptionals bool
+	for _, op := range cmd.operands {
+		if op.modifier == "" {
+			need++
+		} else {
+			hasOptionals = true
+		}
+	}
+
+	// if at least one is optional, no need for an exact number of
+	// arguments
+	if hasOptionals && need > len(cmd.args) {
+		return operandRequiredErr{required: need, got: len(cmd.args)}
+	}
+
+	// if e do not have optional arguments, we need an exact number
+	if !hasOptionals && need != len(cmd.args) {
+		return operandRequiredErr{required: need, got: len(cmd.args), exact: true}
+	}
+
+	// we should be good to go now
 	return nil
 }
 

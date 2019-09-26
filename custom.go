@@ -42,5 +42,5 @@ func (c *choiceString) Set(value string) error {
 		}
 	}
 
-	return fmt.Errorf("'%s' is not a valid value (possible values: %s)", value, strings.Join(c.choices, ","))
+	return parserError{err: fmt.Errorf("'%s' is not a valid value (possible values: %s)", value, strings.Join(c.choices, ","))}
 }

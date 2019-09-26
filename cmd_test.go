@@ -130,7 +130,7 @@ func TestCommandArgReuse(t *testing.T) {
 		})
 
 		err := app.RunArgs(test.cmd)
-		if test.expectError && err == nil {
+		if test.expectError && !libcmd.IsParserErr(err) {
 			t.Errorf("Case %d, should have returned error", i)
 			continue
 		} else if !test.expectError && err != nil {
