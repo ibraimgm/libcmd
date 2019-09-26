@@ -5,7 +5,6 @@ this is a very long description
 USAGE: app [OPTIONS...] [OPERANDS...]
 
 Options:
-
   -h, --help
       Show this help message.
 

@@ -152,7 +152,7 @@ func printHelpOptions(cmd *Cmd, writer io.Writer) {
 		return cmd.optentries[i].helpHeader() < cmd.optentries[j].helpHeader()
 	})
 
-	fmt.Fprintf(writer, "\nOptions:\n")
+	fmt.Fprintf(writer, "\nOptions:")
 
 	for _, entry := range cmd.optentries {
 		fmt.Fprintf(writer, "\n  %s", entry.helpHeader())

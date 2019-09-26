@@ -5,7 +5,6 @@ Runs a computation that returns the sum of two specified numbers.
 USAGE: app add [OPTIONS...] [number1 others... | COMMAND]
 
 Options:
-
   -h, --help
       Show this help message.
 
