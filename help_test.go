@@ -77,6 +77,26 @@ func TestLong(t *testing.T) {
 	}
 }
 
+func TestOperands(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.AddOperand("src", "")
+	app.AddOperand("dst", "")
+
+	if err := compareHelpOutput(app, []string{}, "testdata/operands.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestOperandsMod(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.AddOperand("src", "?")
+	app.AddOperand("dst", "*")
+
+	if err := compareHelpOutput(app, []string{}, "testdata/operands-mod.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestArgs(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
@@ -184,6 +204,48 @@ func TestSubcommandShallow(t *testing.T) {
 	app.Command("sub", "Subtract two numbers.", nil)
 
 	if err := compareHelpOutput(app, []string{"add"}, "testdata/shallow.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSubcommandShallowOp(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.Long = "this is a very long description"
+
+	app.String("astring", "s", "somevalue", "sets a string value")
+	app.Int("aint", "i", 100, "sets a int value")
+
+	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
+		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
+		cmd.AddOperand("number1", "")
+		cmd.AddOperand("number2", "")
+
+		cmd.Command("deep", "A deep subcommand.", nil)
+	})
+	app.Command("sub", "Subtract two numbers.", nil)
+
+	if err := compareHelpOutput(app, []string{"add"}, "testdata/shallow-op.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSubcommandShallowOpRepeat(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.Long = "this is a very long description"
+
+	app.String("astring", "s", "somevalue", "sets a string value")
+	app.Int("aint", "i", 100, "sets a int value")
+
+	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
+		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
+		cmd.AddOperand("number1", "")
+		cmd.AddOperand("others", "*")
+
+		cmd.Command("deep", "A deep subcommand.", nil)
+	})
+	app.Command("sub", "Subtract two numbers.", nil)
+
+	if err := compareHelpOutput(app, []string{"add"}, "testdata/shallow-op-repeat.golden"); err != nil {
 		t.Error(err)
 	}
 }

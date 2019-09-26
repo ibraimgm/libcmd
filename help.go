@@ -92,13 +92,56 @@ func printHelpUsage(cmd *Cmd, writer io.Writer) {
 		usage += " [OPTIONS...]"
 	}
 
-	if len(cmd.commands) > 0 {
-		usage += " COMMAND"
-	} else {
-		usage += " [OPERANDS...]"
+	var params string
+	operands := getHelpOperands(cmd)
+	commands := getHelpCommands(cmd)
+
+	switch {
+	case operands != "" && commands != "":
+		params = "[" + operands + " | " + commands + "]"
+
+	case commands != "":
+		params = commands
+
+	case operands == "OPERANDS...":
+		params = "[" + operands + "]"
+
+	default:
+		params = operands
 	}
 
-	fmt.Fprintf(writer, "\nUSAGE: %s\n", usage)
+	fmt.Fprintf(writer, "\nUSAGE: %s\n", strings.TrimSpace(usage+" "+params))
+}
+
+func getHelpOperands(cmd *Cmd) string {
+	if len(cmd.operands) == 0 {
+		if cmd.Options.StrictOperands || len(cmd.commands) > 0 {
+			return ""
+		}
+
+		return "OPERANDS..."
+	}
+
+	var operands string
+	for _, op := range cmd.operands {
+		operands += " " + op.name
+
+		if op.modifier == "*" {
+			operands += "..."
+		} else {
+			operands += op.modifier
+		}
+	}
+
+	return strings.TrimSpace(operands)
+}
+
+func getHelpCommands(cmd *Cmd) string {
+	if len(cmd.commands) > 0 {
+		return "COMMAND"
+	}
+
+	return ""
 }
 
 func printHelpOptions(cmd *Cmd, writer io.Writer) {
