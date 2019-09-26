@@ -7,6 +7,7 @@ import (
 )
 
 type variant struct {
+	raw          interface{}
 	refValue     reflect.Value
 	defaultValue reflect.Value
 	isBool       bool
@@ -27,11 +28,12 @@ func varFromInterface(target, defaultValue interface{}) *variant {
 
 	def := reflect.ValueOf(defaultValue)
 
-	return varFromReflect(ref, def)
+	return varFromReflect(target, ref, def)
 }
 
-func varFromReflect(target, defaultValue reflect.Value) *variant {
+func varFromReflect(raw interface{}, target, defaultValue reflect.Value) *variant {
 	return &variant{
+		raw:          raw,
 		refValue:     target,
 		defaultValue: defaultValue,
 		isBool:       target.Kind() == reflect.Bool,
@@ -41,6 +43,7 @@ func varFromReflect(target, defaultValue reflect.Value) *variant {
 
 func varFromCustom(target CustomArg, defaultValue string) *variant {
 	return &variant{
+		raw:          target,
 		refValue:     reflect.ValueOf(target),
 		defaultValue: reflect.ValueOf(defaultValue),
 		isStr:        true,

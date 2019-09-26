@@ -226,7 +226,7 @@ func (cmd *Cmd) runLeafCommand() error {
 			arg = cmd.longopt["--help"]
 		}
 
-		if arg != nil {
+		if arg != nil && arg.val.isBool {
 			showHelp = arg.val.refValue.Bool()
 		}
 	}
