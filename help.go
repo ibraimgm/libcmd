@@ -119,18 +119,23 @@ func getHelpOperands(cmd *Cmd) string {
 			return ""
 		}
 
-		return "OPERANDS..."
+		return "[OPERANDS...]"
 	}
 
 	var operands string
 	for _, op := range cmd.operands {
-		operands += " " + op.name
+		operand := op.name
 
-		if op.modifier == "*" {
-			operands += "..."
-		} else {
-			operands += op.modifier
+		switch op.modifier {
+		case "*":
+			operand = "[" + operand + "...]"
+		case "?":
+			operand = "[" + operand + "]"
+		default:
+			operand += op.modifier
 		}
+
+		operands += " " + operand
 	}
 
 	return strings.TrimSpace(operands)
