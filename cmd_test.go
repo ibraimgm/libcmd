@@ -59,7 +59,7 @@ func TestSubCommand(t *testing.T) {
 			c2 = true
 		})
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error running parser: %v", i, err)
 			continue
 		}
@@ -129,7 +129,7 @@ func TestCommandArgReuse(t *testing.T) {
 			})
 		})
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 		if test.expectError && !libcmd.IsParserErr(err) {
 			t.Errorf("Case %d, should have returned error", i)
 			continue
@@ -201,7 +201,7 @@ func TestCommandArgSameName(t *testing.T) {
 			})
 		})
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error running parser: %v", i, err)
 			continue
 		}
@@ -262,7 +262,7 @@ func TestRun(t *testing.T) {
 			})
 		})
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error running parser: %v", i, err)
 			continue
 		}
@@ -285,7 +285,7 @@ func TestNoMatch(t *testing.T) {
 		c1 = true
 	})
 
-	if err := app.RunArgs([]string{"", ""}); err != nil {
+	if err := app.ParseArgs([]string{"", ""}); err != nil {
 		t.Errorf("Error running parser: %v", err)
 		return
 	}
