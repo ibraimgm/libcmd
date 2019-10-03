@@ -51,8 +51,8 @@ func (cmd *Cmd) PrintHelp(writer io.Writer) {
 
 func automaticHelp(cmd *Cmd, writer io.Writer) {
 	printHelpBrief(cmd, writer)
-	printHelpLong(cmd, writer)
 	printHelpUsage(cmd, writer)
+	printHelpLong(cmd, writer)
 	printHelpOptions(cmd, writer)
 	printHelpCommands(cmd, writer)
 }

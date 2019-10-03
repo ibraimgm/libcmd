@@ -1,8 +1,8 @@
 app add - Sums two numbers.
 
-Runs a computation that returns the sum of two specified numbers.
-
 USAGE: app add [OPTIONS...] COMMAND
+
+Runs a computation that returns the sum of two specified numbers.
 
 Options:
   -h, --help
