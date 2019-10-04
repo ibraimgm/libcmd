@@ -72,7 +72,7 @@ func TestOpt(t *testing.T) {
 		afloat32 := app.Float32("afloat32", "f32", 0, "specifies a float32 value")
 		afloat64 := app.Float64("afloat64", "f64", 0, "specifies a float64 value")
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -125,7 +125,7 @@ func TestOptDefault(t *testing.T) {
 		afloat32 := app.Float32("afloat32", "f32", float32(3.14), "specifies a float32 value")
 		afloat64 := app.Float64("afloat64", "f64", float64(3.1415), "specifies a float64 value")
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -170,7 +170,7 @@ func TestOptError(t *testing.T) {
 		app.Uint("auint", "u", 0, "specifies an uint value")
 		app.String("astring", "s", "", "specifies a string value")
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 
 		if err == nil {
 			t.Errorf("Case %d, argument parsing should return error", i)
@@ -209,7 +209,7 @@ func TestOptIntLimit(t *testing.T) {
 		c := app.Int32("", "c", 0, "specifies a int32 value")
 		d := app.Int64("", "d", 0, "specifies a int64 value")
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -243,7 +243,7 @@ func TestOptUintLimit(t *testing.T) {
 		c := app.Uint32("", "c", 0, "specifies a uint32 value")
 		d := app.Uint64("", "d", 0, "specifies a uint64 value")
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -286,7 +286,7 @@ func TestOptIntegerLimits(t *testing.T) {
 		app.Uint32("auint32", "", 0, "specifies a uint32 value")
 		app.Uint64("auint64", "", 0, "specifies a uint64 value")
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 
 		if err == nil {
 			t.Errorf("Case %d, argument parsing should return error", i)
@@ -334,7 +334,7 @@ func TestOptKeepValue(t *testing.T) {
 		*s1 = keep
 		*s2 = ""
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -361,7 +361,7 @@ func TestChoice(t *testing.T) {
 		app := libcmd.NewApp("", "")
 		s := app.Choice([]string{"foo", "bar", "baz"}, "", "c", "", "")
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 		if !test.expectErr && err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
@@ -411,7 +411,7 @@ func TestOperand(t *testing.T) {
 		s := app.String("", "s", "", "")
 		app.AddOperand("name", "")
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 		if !test.expectErr && err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
@@ -467,7 +467,7 @@ func TestOperandOptional(t *testing.T) {
 		app.AddOperand("name", "")
 		app.AddOperand("value", "?")
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 		if !test.expectErr && err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue

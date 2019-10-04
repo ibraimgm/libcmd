@@ -84,14 +84,14 @@ func NewApp(name, brief string) *App {
 	return &app
 }
 
-// Run runs the parser, collecting the values from the command-line
+// Parse runs the parser, collecting the values from the command-line
 // and running any needed subcommands.
-func (app *App) Run() error {
-	return app.RunArgs(os.Args[1:])
+func (app *App) Parse() error {
+	return app.ParseArgs(os.Args[1:])
 }
 
-// RunArgs behave like run, but instead of looking to the command-line
+// ParseArgs behave like Parse, but instead of looking to the command-line
 // arguments, it takes an array of arguments as parameters.
-func (app *App) RunArgs(args []string) error {
+func (app *App) ParseArgs(args []string) error {
 	return app.doRun(args)
 }
