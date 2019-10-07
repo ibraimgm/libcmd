@@ -119,7 +119,7 @@ func getHelpOperands(cmd *Cmd) string {
 			return ""
 		}
 
-		return "[OPERANDS...]"
+		return "OPERANDS..."
 	}
 
 	var operands string
