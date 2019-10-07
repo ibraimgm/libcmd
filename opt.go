@@ -150,7 +150,7 @@ func (cmd *Cmd) doParse(args []string) error {
 			return unknownArgErr{arg: arg.name}
 		}
 
-		// some argument types have autmatic values in certain cases
+		// some argument types have automatic values in certain cases
 		// fill them in, if necessary
 		entry.fillAutoValue(arg)
 

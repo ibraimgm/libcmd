@@ -13,3 +13,6 @@
 
 # VSCode config
 .vscode
+
+# idea
+.idea

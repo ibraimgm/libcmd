@@ -1,0 +1,7 @@
+app - some brief description
+
+USAGE: app [OPTIONS...] [src] [dst...]
+
+Options:
+  -h, --help
+      Show this help message.

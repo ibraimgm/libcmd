@@ -109,6 +109,16 @@ func TestArgs(t *testing.T) {
 	}
 }
 
+func TestHelpMessageWithOperands(t *testing.T) {
+	app := libcmd.NewApp("app", "some brief description")
+	app.AddOperand("src", "?")
+	app.AddOperand("dst", "*")
+
+	if err := compareHelpOutput(app, []string{"-h", "test", "test2"}, "testdata/help-message-with-operands.golden"); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestArgsPartial(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
