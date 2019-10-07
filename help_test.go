@@ -21,7 +21,7 @@ func compareHelpOutput(app *libcmd.App, args []string, goldenfile string) error 
 
 	if len(args) == 0 {
 		app.Help()
-	} else if err := app.RunArgs(args); err != nil {
+	} else if err := app.ParseArgs(args); err != nil {
 		return err
 	}
 

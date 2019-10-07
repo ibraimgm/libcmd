@@ -49,7 +49,7 @@ func TestGet(t *testing.T) {
 		app.Float32("afloat32", "f32", 0, "specifies a float32 value")
 		app.Float64("afloat64", "f64", 0, "specifies a float64 value")
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -106,7 +106,7 @@ func TestGetIntLimit(t *testing.T) {
 		app.Uint32("", "g", 0, "specifies a uint32 value")
 		app.Uint64("", "h", 0, "specifies a uint64 value")
 
-		if err := app.RunArgs(test.cmd); err != nil {
+		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
@@ -148,7 +148,7 @@ func TestGetChoice(t *testing.T) {
 		app := libcmd.NewApp("", "")
 		app.Choice([]string{"foo", "bar", "baz"}, "", "c", "", "")
 
-		err := app.RunArgs(test.cmd)
+		err := app.ParseArgs(test.cmd)
 		if !test.expectErr && err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
