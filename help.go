@@ -163,7 +163,14 @@ func printHelpOptions(cmd *Cmd, writer io.Writer) {
 		fmt.Fprintf(writer, "\n  %s", entry.helpHeader())
 
 		if defHelp := entry.val.defaultAsString(); defHelp != "" {
-			fmt.Fprintf(writer, " (default: %s)", defHelp)
+			fmt.Fprintf(writer, " [default: %s]", defHelp)
+		}
+
+		if entry.val.refValue.Type().Implements(customArgType) {
+			ca, _ := entry.val.refValue.Interface().(CustomArg)
+			if explanation := ca.Explain(); explanation != "" {
+				fmt.Fprintf(writer, " %s", explanation)
+			}
 		}
 
 		fmt.Fprintln(writer)

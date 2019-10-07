@@ -279,3 +279,25 @@ func TestSubcommandDeep(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestHelpChoice(t *testing.T) {
+	tests := []struct {
+		choices  []string
+		defValue string
+		file     string
+	}{
+		{choices: []string{"foo", "bar", "baz"}, file: "testdata/choice-nodefault.golden"},
+		{choices: []string{"foo", "bar", "baz"}, defValue: "bar", file: "testdata/choice-default.golden"},
+		{choices: []string{"foo", "bar", "baz"}, defValue: "bak", file: "testdata/choice-default-new.golden"},
+	}
+
+	for i, test := range tests {
+		app := libcmd.NewApp("app", "some brief description")
+		app.Choice(test.choices, "choice", "c", test.defValue, "Values to choose from.")
+
+		if err := compareHelpOutput(app, []string{"-h"}, test.file); err != nil {
+			t.Errorf("Case %d, %v", i, err)
+		}
+	}
+
+}

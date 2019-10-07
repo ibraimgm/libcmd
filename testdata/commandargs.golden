@@ -8,10 +8,10 @@ Options:
   -h, --help
       Show this help message.
 
-  -i, --aint (default: 100)
+  -i, --aint [default: 100]
       sets a int value
 
-  -s, --astring (default: somevalue)
+  -s, --astring [default: somevalue]
       sets a string value
 
 Commands:

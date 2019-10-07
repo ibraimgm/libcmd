@@ -409,10 +409,22 @@ func (cmd *Cmd) CustomP(target CustomArg, long, short, defaultValue, help string
 // If the defaultValue is always considered 'valid', even when not listed on
 // the choices parameter.
 func (cmd *Cmd) ChoiceP(target *string, choices []string, long, short, defaultValue, help string) {
-	// add the default value in the 'valid choices' list
+	// add the default value in the 'valid choices' list,
+	// if it isn't present already
 	valid := make([]string, len(choices), len(choices)+1)
 	copy(valid, choices)
-	valid = append(valid, defaultValue)
+
+	var found bool
+	for _, s := range valid {
+		if s == defaultValue {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		valid = append(valid, defaultValue)
+	}
 
 	cmd.CustomP(newChoice(target, valid), long, short, defaultValue, help)
 }

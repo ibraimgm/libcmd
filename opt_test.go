@@ -348,13 +348,13 @@ func TestChoice(t *testing.T) {
 	tests := []struct {
 		cmd       []string
 		expected  string
-		expectErr bool
+		expectErr string
 	}{
 		{cmd: []string{}, expected: "default"},
 		{cmd: []string{"-c", "foo"}, expected: "foo"},
 		{cmd: []string{"-c", "bar"}, expected: "bar"},
 		{cmd: []string{"-c", "baz"}, expected: "baz"},
-		{cmd: []string{"-c", "hey"}, expectErr: true},
+		{cmd: []string{"-c", "hey"}, expectErr: "(possible values: foo,bar,baz,default)"},
 	}
 
 	for i, test := range tests {
@@ -362,19 +362,19 @@ func TestChoice(t *testing.T) {
 		s := app.Choice([]string{"foo", "bar", "baz"}, "", "c", "default", "")
 
 		err := app.ParseArgs(test.cmd)
-		if !test.expectErr && err != nil {
+		if test.expectErr == "" && err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
 			continue
 		}
 
-		if test.expectErr {
+		if test.expectErr != "" {
 			if !libcmd.IsParserErr(err) {
 				t.Errorf("Case %d, expected error but none received", i)
 				continue
 			}
 
-			if !strings.Contains(err.Error(), "possible values") {
-				t.Errorf("Case %d, wrong error message received", i)
+			if !strings.Contains(err.Error(), test.expectErr) {
+				t.Errorf("Case %d, wrong error message received (expected '%s', received '%s')", i, test.expectErr, err.Error())
 				continue
 			}
 		}
