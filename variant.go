@@ -53,7 +53,12 @@ func varFromCustom(target CustomArg, defaultValue string) *variant {
 func (v *variant) setValue(value string) error {
 	if v.refValue.Type().Implements(customArgType) {
 		ca, _ := v.refValue.Interface().(CustomArg)
-		return ca.Set(value)
+		if err := ca.Set(value); err != nil {
+			return err
+		}
+
+		v.isSet = true
+		return nil
 	}
 
 	converted, err := valueAsKind(value, v.refValue.Kind(), v.refValue.Type())
@@ -67,21 +72,16 @@ func (v *variant) setValue(value string) error {
 	return nil
 }
 
-func (v *variant) useDefault() {
+func (v *variant) useDefault() error {
 	if v.isSet {
-		return
+		return nil
 	}
 
 	if v.refValue.Type().Implements(customArgType) {
 		ca, _ := v.refValue.Interface().(CustomArg)
 
-		if ca.Get() == "" {
-			return
-		}
-
 		str := v.defaultValue.String()
-		ca.Set(str) //nolint: errcheck
-		return
+		return ca.Set(str) //nolint: errcheck
 	}
 
 	zero := reflect.Zero(v.refValue.Type())
@@ -90,10 +90,11 @@ func (v *variant) useDefault() {
 
 	// if we have a value, and our default is zero, we keep it
 	if defaultIsZero && !valueIsZero {
-		return
+		return nil
 	}
 
 	v.refValue.Set(v.defaultValue)
+	return nil
 }
 
 func (v *variant) defaultAsString() string {

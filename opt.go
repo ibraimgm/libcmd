@@ -187,7 +187,9 @@ func (cmd *Cmd) doRun(args []string) error {
 	}
 
 	for i := range cmd.optentries {
-		cmd.optentries[i].val.useDefault()
+		if err := cmd.optentries[i].val.useDefault(); err != nil {
+			return err
+		}
 	}
 
 	if cmd.match != nil {
@@ -407,7 +409,12 @@ func (cmd *Cmd) CustomP(target CustomArg, long, short, defaultValue, help string
 // If the defaultValue is always considered 'valid', even when not listed on
 // the choices parameter.
 func (cmd *Cmd) ChoiceP(target *string, choices []string, long, short, defaultValue, help string) {
-	cmd.CustomP(newChoice(target, choices), long, short, defaultValue, help)
+	// add the default value in the 'valid choices' list
+	valid := make([]string, len(choices), len(choices)+1)
+	copy(valid, choices)
+	valid = append(valid, defaultValue)
+
+	cmd.CustomP(newChoice(target, valid), long, short, defaultValue, help)
 }
 
 // String defines a new string argument. After parsing, the argument value

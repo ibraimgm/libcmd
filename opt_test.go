@@ -350,7 +350,7 @@ func TestChoice(t *testing.T) {
 		expected  string
 		expectErr bool
 	}{
-		{cmd: []string{}},
+		{cmd: []string{}, expected: "default"},
 		{cmd: []string{"-c", "foo"}, expected: "foo"},
 		{cmd: []string{"-c", "bar"}, expected: "bar"},
 		{cmd: []string{"-c", "baz"}, expected: "baz"},
@@ -359,7 +359,7 @@ func TestChoice(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
-		s := app.Choice([]string{"foo", "bar", "baz"}, "", "c", "", "")
+		s := app.Choice([]string{"foo", "bar", "baz"}, "", "c", "default", "")
 
 		err := app.ParseArgs(test.cmd)
 		if !test.expectErr && err != nil {

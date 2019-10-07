@@ -35,6 +35,11 @@ func (c *choiceString) Get() string {
 }
 
 func (c *choiceString) Set(value string) error {
+	if value == "" {
+		*c.value = value
+		return nil
+	}
+
 	for _, s := range c.choices {
 		if s == value {
 			*c.value = value
