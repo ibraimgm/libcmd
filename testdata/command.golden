@@ -5,8 +5,7 @@ USAGE: app [OPTIONS...] COMMAND
 this is a very long description
 
 Options:
-  -h, --help
-      Show this help message.
+  -h, --help                Show this help message.
 
 Commands:
   add   Sums two numbers.

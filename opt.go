@@ -45,21 +45,70 @@ func parseOptArg(argstr string) *optArg {
 type optEntry struct {
 	long  string
 	short string
-	help  string
+	help  []string
 	val   *variant
 }
 
 func (entry *optEntry) helpHeader() string {
-	switch {
-	case entry.short != "" && entry.long != "":
-		return "-" + entry.short + ", --" + entry.long
+	var s string
+	var kindSep string
 
-	case entry.short != "":
-		return "-" + entry.short
-
-	default:
-		return "--" + entry.long
+	// 'short' name
+	if entry.short != "" {
+		s = "-" + entry.short
+		kindSep = " "
 	}
+
+	// 'long' name, aligned
+	if entry.long != "" {
+		if entry.short != "" {
+			s += ", "
+		}
+
+		s += "--" + entry.long
+		kindSep = "="
+	}
+
+	// value kind
+	if len(entry.help) >= 2 {
+		s += kindSep + entry.help[1]
+	} else if !entry.val.isBool {
+		if entry.val.refValue.Type().Implements(customArgType) {
+			ca, _ := entry.val.refValue.Interface().(CustomArg)
+			s += kindSep + ca.TypeName()
+		} else {
+			s += kindSep + entry.val.refValue.Kind().String()
+		}
+	}
+
+	return s
+}
+
+func (entry *optEntry) helpExplain() string {
+	var explain string
+
+	// user supplyed text
+	if len(entry.help) > 0 {
+		explain = entry.help[0]
+	}
+
+	// expand template of custom types
+	if entry.val.refValue.Type().Implements(customArgType) {
+		ca, _ := entry.val.refValue.Interface().(CustomArg)
+		explain = ca.Explain(explain)
+	}
+
+	// if it is still empty, put a generic message
+	if explain == "" {
+		explain = "Sets the argument value."
+	}
+
+	// adds the default value
+	if def := entry.val.defaultAsString(); def != "" {
+		explain += " (default: " + def + ")"
+	}
+
+	return explain
 }
 
 // try to 'fix' the options that have a 'natural' default
@@ -300,105 +349,105 @@ func (cmd *Cmd) Args() []string {
 
 // StringP defines a new string argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) StringP(target *string, long, short, defaultValue, help string) {
+func (cmd *Cmd) StringP(target *string, long, short, defaultValue string, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // BoolP defines a new bool argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) BoolP(target *bool, long, short string, defaultValue bool, help string) {
+func (cmd *Cmd) BoolP(target *bool, long, short string, defaultValue bool, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // IntP defines a new int argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) IntP(target *int, long, short string, defaultValue int, help string) {
+func (cmd *Cmd) IntP(target *int, long, short string, defaultValue int, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Int8P defines a new int8 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Int8P(target *int8, long, short string, defaultValue int8, help string) {
+func (cmd *Cmd) Int8P(target *int8, long, short string, defaultValue int8, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Int16P defines a new int16 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Int16P(target *int16, long, short string, defaultValue int16, help string) {
+func (cmd *Cmd) Int16P(target *int16, long, short string, defaultValue int16, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Int32P defines a new int32 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Int32P(target *int32, long, short string, defaultValue int32, help string) {
+func (cmd *Cmd) Int32P(target *int32, long, short string, defaultValue int32, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Int64P defines a new int64 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Int64P(target *int64, long, short string, defaultValue int64, help string) {
+func (cmd *Cmd) Int64P(target *int64, long, short string, defaultValue int64, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // UintP defines a new uint argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) UintP(target *uint, long, short string, defaultValue uint, help string) {
+func (cmd *Cmd) UintP(target *uint, long, short string, defaultValue uint, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Uint8P defines a new uint8 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Uint8P(target *uint8, long, short string, defaultValue uint8, help string) {
+func (cmd *Cmd) Uint8P(target *uint8, long, short string, defaultValue uint8, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Uint16P defines a new uint16 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Uint16P(target *uint16, long, short string, defaultValue uint16, help string) {
+func (cmd *Cmd) Uint16P(target *uint16, long, short string, defaultValue uint16, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Uint32P defines a new uint32 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Uint32P(target *uint32, long, short string, defaultValue uint32, help string) {
+func (cmd *Cmd) Uint32P(target *uint32, long, short string, defaultValue uint32, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Uint64P defines a new uint64 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Uint64P(target *uint64, long, short string, defaultValue uint64, help string) {
+func (cmd *Cmd) Uint64P(target *uint64, long, short string, defaultValue uint64, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Float32P defines a new float32 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Float32P(target *float32, long, short string, defaultValue float32, help string) {
+func (cmd *Cmd) Float32P(target *float32, long, short string, defaultValue float32, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // Float64P defines a new float64 argument. After parsing, the argument value
 // will be available in the specified pointer.
-func (cmd *Cmd) Float64P(target *float64, long, short string, defaultValue float64, help string) {
+func (cmd *Cmd) Float64P(target *float64, long, short string, defaultValue float64, help ...string) {
 	val := varFromInterface(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
 
 // CustomP defines a new argument with custom type. During parsing, the argument
 // is manipulated via Get and Set methods of the CustomArg interface.
-func (cmd *Cmd) CustomP(target CustomArg, long, short, defaultValue, help string) {
+func (cmd *Cmd) CustomP(target CustomArg, long, short, defaultValue string, help ...string) {
 	val := varFromCustom(target, defaultValue)
 	cmd.addOpt(&optEntry{long: long, short: short, help: help, val: val})
 }
@@ -408,7 +457,7 @@ func (cmd *Cmd) CustomP(target CustomArg, long, short, defaultValue, help string
 //
 // If the defaultValue is always considered 'valid', even when not listed on
 // the choices parameter.
-func (cmd *Cmd) ChoiceP(target *string, choices []string, long, short, defaultValue, help string) {
+func (cmd *Cmd) ChoiceP(target *string, choices []string, long, short, defaultValue string, help ...string) {
 	// add the default value in the 'valid choices' list,
 	// if it isn't present already
 	valid := make([]string, len(choices), len(choices)+1)
@@ -426,118 +475,118 @@ func (cmd *Cmd) ChoiceP(target *string, choices []string, long, short, defaultVa
 		valid = append(valid, defaultValue)
 	}
 
-	cmd.CustomP(newChoice(target, valid), long, short, defaultValue, help)
+	cmd.CustomP(newChoice(target, valid), long, short, defaultValue, help...)
 }
 
 // String defines a new string argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) String(long, short, defaultValue, help string) *string {
+func (cmd *Cmd) String(long, short, defaultValue string, help ...string) *string {
 	target := new(string)
-	cmd.StringP(target, long, short, defaultValue, help)
+	cmd.StringP(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Bool defines a new bool argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Bool(long, short string, defaultValue bool, help string) *bool {
+func (cmd *Cmd) Bool(long, short string, defaultValue bool, help ...string) *bool {
 	target := new(bool)
-	cmd.BoolP(target, long, short, defaultValue, help)
+	cmd.BoolP(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Int defines a new int argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Int(long, short string, defaultValue int, help string) *int {
+func (cmd *Cmd) Int(long, short string, defaultValue int, help ...string) *int {
 	target := new(int)
-	cmd.IntP(target, long, short, defaultValue, help)
+	cmd.IntP(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Int8 defines a new int8 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Int8(long, short string, defaultValue int8, help string) *int8 {
+func (cmd *Cmd) Int8(long, short string, defaultValue int8, help ...string) *int8 {
 	target := new(int8)
-	cmd.Int8P(target, long, short, defaultValue, help)
+	cmd.Int8P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Int16 defines a new int16 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Int16(long, short string, defaultValue int16, help string) *int16 {
+func (cmd *Cmd) Int16(long, short string, defaultValue int16, help ...string) *int16 {
 	target := new(int16)
-	cmd.Int16P(target, long, short, defaultValue, help)
+	cmd.Int16P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Int32 defines a new int32 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Int32(long, short string, defaultValue int32, help string) *int32 {
+func (cmd *Cmd) Int32(long, short string, defaultValue int32, help ...string) *int32 {
 	target := new(int32)
-	cmd.Int32P(target, long, short, defaultValue, help)
+	cmd.Int32P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Int64 defines a new int64 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Int64(long, short string, defaultValue int64, help string) *int64 {
+func (cmd *Cmd) Int64(long, short string, defaultValue int64, help ...string) *int64 {
 	target := new(int64)
-	cmd.Int64P(target, long, short, defaultValue, help)
+	cmd.Int64P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Uint defines a new uint argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Uint(long, short string, defaultValue uint, help string) *uint {
+func (cmd *Cmd) Uint(long, short string, defaultValue uint, help ...string) *uint {
 	target := new(uint)
-	cmd.UintP(target, long, short, defaultValue, help)
+	cmd.UintP(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Uint8 defines a new uint8 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Uint8(long, short string, defaultValue uint8, help string) *uint8 {
+func (cmd *Cmd) Uint8(long, short string, defaultValue uint8, help ...string) *uint8 {
 	target := new(uint8)
-	cmd.Uint8P(target, long, short, defaultValue, help)
+	cmd.Uint8P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Uint16 defines a new uint16 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Uint16(long, short string, defaultValue uint16, help string) *uint16 {
+func (cmd *Cmd) Uint16(long, short string, defaultValue uint16, help ...string) *uint16 {
 	target := new(uint16)
-	cmd.Uint16P(target, long, short, defaultValue, help)
+	cmd.Uint16P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Uint32 defines a new uint32 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Uint32(long, short string, defaultValue uint32, help string) *uint32 {
+func (cmd *Cmd) Uint32(long, short string, defaultValue uint32, help ...string) *uint32 {
 	target := new(uint32)
-	cmd.Uint32P(target, long, short, defaultValue, help)
+	cmd.Uint32P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Uint64 defines a new uint64 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Uint64(long, short string, defaultValue uint64, help string) *uint64 {
+func (cmd *Cmd) Uint64(long, short string, defaultValue uint64, help ...string) *uint64 {
 	target := new(uint64)
-	cmd.Uint64P(target, long, short, defaultValue, help)
+	cmd.Uint64P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Float32 defines a new float32 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Float32(long, short string, defaultValue float32, help string) *float32 {
+func (cmd *Cmd) Float32(long, short string, defaultValue float32, help ...string) *float32 {
 	target := new(float32)
-	cmd.Float32P(target, long, short, defaultValue, help)
+	cmd.Float32P(target, long, short, defaultValue, help...)
 	return target
 }
 
 // Float64 defines a new float64 argument. After parsing, the argument value
 // will be available in the returned pointer.
-func (cmd *Cmd) Float64(long, short string, defaultValue float64, help string) *float64 {
+func (cmd *Cmd) Float64(long, short string, defaultValue float64, help ...string) *float64 {
 	target := new(float64)
-	cmd.Float64P(target, long, short, defaultValue, help)
+	cmd.Float64P(target, long, short, defaultValue, help...)
 	return target
 }
 
@@ -546,8 +595,8 @@ func (cmd *Cmd) Float64(long, short string, defaultValue float64, help string) *
 //
 // If the defaultValue is always considered 'valid', even when not listed on
 // the choices parameter.
-func (cmd *Cmd) Choice(choices []string, long, short, defaultValue, help string) *string {
+func (cmd *Cmd) Choice(choices []string, long, short, defaultValue string, help ...string) *string {
 	target := new(string)
-	cmd.ChoiceP(target, choices, long, short, defaultValue, help)
+	cmd.ChoiceP(target, choices, long, short, defaultValue, help...)
 	return target
 }

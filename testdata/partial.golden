@@ -5,11 +5,6 @@ USAGE: app [OPTIONS...] [OPERANDS...]
 this is a very long description
 
 Options:
-  --aint
-      sets a int value
-
-  -h, --help
-      Show this help message.
-
-  -s
-      sets a string value
+  --aint=int                Sets a int value.
+  -h, --help                Show this help message.
+  -s string                 Sets a string value.

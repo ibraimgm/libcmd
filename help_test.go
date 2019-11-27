@@ -101,8 +101,10 @@ func TestArgs(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "", "sets a string value")
-	app.Int("aint", "i", 0, "sets a int value")
+	app.String("astring", "s", "", "Sets a string value.")
+	app.Int("aint", "i", 0, "Sets a int value.")
+	app.Int("", "a", 0, "Sets the amount value.", "amount")
+	app.Int("balance", "", 0, "Sets the balance value.", "balance")
 
 	if err := compareHelpOutput(app, []string{"-h"}, "testdata/args.golden"); err != nil {
 		t.Error(err)
@@ -123,8 +125,8 @@ func TestArgsPartial(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("", "s", "", "sets a string value")
-	app.Int("aint", "", 0, "sets a int value")
+	app.String("", "s", "", "Sets a string value.")
+	app.Int("aint", "", 0, "Sets a int value.")
 
 	if err := compareHelpOutput(app, []string{"-h"}, "testdata/partial.golden"); err != nil {
 		t.Error(err)
@@ -136,8 +138,8 @@ func TestArgsNoHelp(t *testing.T) {
 	app.Long = "this is a very long description"
 	app.Options.SuppressHelpFlag = true
 
-	app.String("astring", "s", "", "sets a string value")
-	app.Int("aint", "i", 0, "sets a int value")
+	app.String("astring", "s", "", "Sets a string value.")
+	app.Int("aint", "i", 0, "Sets a int value.")
 
 	if err := compareHelpOutput(app, []string{}, "testdata/nohelp.golden"); err != nil {
 		t.Error(err)
@@ -148,8 +150,8 @@ func TestDefault(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", "s", "somevalue", "Sets a string value.")
+	app.Int("aint", "i", 100, "Sets a int value.")
 
 	if err := compareHelpOutput(app, []string{"-h"}, "testdata/default.golden"); err != nil {
 		t.Error(err)
@@ -172,8 +174,8 @@ func TestCommandArgs(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", "s", "somevalue", "Sets a string value.")
+	app.Int("aint", "i", 100, "Sets a int value.")
 
 	app.Command("add", "Sums two numbers.", nil)
 	app.Command("sub", "Subtract two numbers.", nil)
@@ -293,11 +295,30 @@ func TestHelpChoice(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("app", "some brief description")
-		app.Choice(test.choices, "choice", "c", test.defValue, "Values to choose from.")
+		app.Choice(test.choices, "choice", "c", test.defValue, "One of %s.")
 
 		if err := compareHelpOutput(app, []string{"-h"}, test.file); err != nil {
 			t.Errorf("Case %d, %v", i, err)
 		}
 	}
+}
 
+func TestHelpChoiceTemplate(t *testing.T) {
+	tests := []struct {
+		template string
+		file     string
+	}{
+		{template: "Values: %s.", file: "testdata/choice-template-normal.golden"},
+		{template: "Without template.", file: "testdata/choice-template-none.golden"},
+		{template: "", file: "testdata/choice-template-empty.golden"},
+	}
+
+	for i, test := range tests {
+		app := libcmd.NewApp("app", "some brief description")
+		app.Choice([]string{"a", "b", "c"}, "choice", "c", "", test.template)
+
+		if err := compareHelpOutput(app, []string{"-h"}, test.file); err != nil {
+			t.Errorf("Case %d, %v", i, err)
+		}
+	}
 }

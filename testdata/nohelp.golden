@@ -5,8 +5,5 @@ USAGE: app [OPTIONS...] [OPERANDS...]
 this is a very long description
 
 Options:
-  -i, --aint
-      sets a int value
-
-  -s, --astring
-      sets a string value
+  -i, --aint=int            Sets a int value.
+  -s, --astring=string      Sets a string value.

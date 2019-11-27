@@ -157,29 +157,11 @@ func printHelpOptions(cmd *Cmd, writer io.Writer) {
 		return cmd.optentries[i].helpHeader() < cmd.optentries[j].helpHeader()
 	})
 
-	fmt.Fprintf(writer, "\nOptions:")
+	fmt.Fprintf(writer, "\nOptions:\n")
 
 	for _, entry := range cmd.optentries {
-		fmt.Fprintf(writer, "\n  %s", entry.helpHeader())
-
-		if defHelp := entry.val.defaultAsString(); defHelp != "" {
-			fmt.Fprintf(writer, " [default: %s]", defHelp)
-		}
-
-		if entry.val.refValue.Type().Implements(customArgType) {
-			ca, _ := entry.val.refValue.Interface().(CustomArg)
-			if explanation := ca.Explain(); explanation != "" {
-				fmt.Fprintf(writer, " %s", explanation)
-			}
-		}
-
-		fmt.Fprintln(writer)
-
-		if entry.help != "" {
-			fmt.Fprintf(writer, "      %s\n", entry.help)
-		}
+		fmt.Fprintf(writer, "  %-24s  %s\n", entry.helpHeader(), entry.helpExplain())
 	}
-
 }
 
 func printHelpCommands(cmd *Cmd, writer io.Writer) {

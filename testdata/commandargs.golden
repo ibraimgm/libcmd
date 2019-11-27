@@ -5,14 +5,9 @@ USAGE: app [OPTIONS...] COMMAND
 this is a very long description
 
 Options:
-  -h, --help
-      Show this help message.
-
-  -i, --aint [default: 100]
-      sets a int value
-
-  -s, --astring [default: somevalue]
-      sets a string value
+  -h, --help                Show this help message.
+  -i, --aint=int            Sets a int value. (default: 100)
+  -s, --astring=string      Sets a string value. (default: somevalue)
 
 Commands:
   add   Sums two numbers.

@@ -5,11 +5,8 @@ USAGE: app [OPTIONS...] [OPERANDS...]
 this is a very long description
 
 Options:
-  -h, --help
-      Show this help message.
-
-  -i, --aint
-      sets a int value
-
-  -s, --astring
-      sets a string value
+  --balance=balance         Sets the balance value.
+  -a amount                 Sets the amount value.
+  -h, --help                Show this help message.
+  -i, --aint=int            Sets a int value.
+  -s, --astring=string      Sets a string value.

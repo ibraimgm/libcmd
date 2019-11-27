@@ -3,8 +3,5 @@ app - some brief description
 USAGE: app [OPTIONS...] [OPERANDS...]
 
 Options:
-  -c, --choice (values: foo,bar,baz)
-      Values to choose from.
-
-  -h, --help
-      Show this help message.
+  -c, --choice=value        One of foo,bar,baz.
+  -h, --help                Show this help message.

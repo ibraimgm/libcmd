@@ -3,5 +3,5 @@ app - some brief description
 USAGE: app [OPTIONS...] [OPERANDS...]
 
 Options:
-  -c, --choice=value        One of foo,bar,baz. (default: bar)
+  -c, --choice=value        Without template.
   -h, --help                Show this help message.
