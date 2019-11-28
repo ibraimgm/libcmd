@@ -106,12 +106,12 @@ func TestCommandArgReuse(t *testing.T) {
 
 		var c1, c2 bool
 
-		str := app.String("str", "s", "default", "")
-		b := app.Bool("bool", "b", false, "")
+		str := app.String("str", 's', "default", "")
+		b := app.Bool("bool", 'b', false, "")
 
 		app.Command("c1", "", func(cmd *libcmd.Cmd) {
-			cmd.StringP(str, "str", "s", *str, "")
-			cmd.BoolP(b, "bool", "b", *b, "")
+			cmd.StringP(str, "str", 's', *str, "")
+			cmd.BoolP(b, "bool", 'b', *b, "")
 
 			cmd.Match(func(*libcmd.Cmd) {
 				c1 = true
@@ -172,8 +172,8 @@ func TestCommandArgSameName(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 		app.Options.HelpOutput = ioutil.Discard
-		s1 := app.String("s1", "", "s1", "")
-		s2 := app.String("s2", "", "s2", "")
+		s1 := app.String("s1", 0, "s1", "")
+		s2 := app.String("s2", 0, "s2", "")
 
 		var c1, c2 bool
 
@@ -184,8 +184,8 @@ func TestCommandArgSameName(t *testing.T) {
 		c2s2 := new(string)
 
 		app.Command("c1", "", func(cmd *libcmd.Cmd) {
-			c1s1 = cmd.String("s1", "", "", "")
-			cmd.StringP(s2, "s2", "", *s2, "")
+			c1s1 = cmd.String("s1", 0, "", "")
+			cmd.StringP(s2, "s2", 0, *s2, "")
 
 			cmd.Match(func(*libcmd.Cmd) {
 				c1 = true
@@ -193,8 +193,8 @@ func TestCommandArgSameName(t *testing.T) {
 		})
 
 		app.Command("c2", "", func(cmd *libcmd.Cmd) {
-			cmd.StringP(s1, "s1", "", *s1, "")
-			c2s2 = cmd.String("s2", "", "", "")
+			cmd.StringP(s1, "s1", 0, *s1, "")
+			c2s2 = cmd.String("s2", 0, "", "")
 
 			cmd.Match(func(*libcmd.Cmd) {
 				c2 = true
@@ -279,7 +279,7 @@ func TestNoMatch(t *testing.T) {
 	var c1 bool
 
 	app := libcmd.NewApp("", "")
-	app.StringP(&s, "", "", "xxxx", "")
+	app.StringP(&s, "", 0, "xxxx", "")
 
 	app.Command("", "", func(cmd *libcmd.Cmd) {
 		c1 = true

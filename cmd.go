@@ -141,6 +141,6 @@ func (cmd *Cmd) setupHelp() {
 	}
 
 	if (len(cmd.optentries) > 0 || len(cmd.commands) > 0 || len(cmd.operands) > 0) && cmd.shortopt["-h"] == nil {
-		cmd.Bool("help", "h", false, "Show this help message.")
+		cmd.Bool("help", 'h', false, "Show this help message.")
 	}
 }

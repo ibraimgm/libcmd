@@ -101,10 +101,10 @@ func TestArgs(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "", "Sets a string value.")
-	app.Int("aint", "i", 0, "Sets a int value.")
-	app.Int("", "a", 0, "Sets the amount value.", "amount")
-	app.Int("balance", "", 0, "Sets the balance value.", "balance")
+	app.String("astring", 's', "", "Sets a string value.")
+	app.Int("aint", 'i', 0, "Sets a int value.")
+	app.Int("", 'a', 0, "Sets the amount value.", "amount")
+	app.Int("balance", -1, 0, "Sets the balance value.", "balance")
 
 	if err := compareHelpOutput(app, []string{"-h"}, "testdata/args.golden"); err != nil {
 		t.Error(err)
@@ -125,8 +125,8 @@ func TestArgsPartial(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("", "s", "", "Sets a string value.")
-	app.Int("aint", "", 0, "Sets a int value.")
+	app.String("", 's', "", "Sets a string value.")
+	app.Int("aint", 0, 0, "Sets a int value.")
 
 	if err := compareHelpOutput(app, []string{"-h"}, "testdata/partial.golden"); err != nil {
 		t.Error(err)
@@ -138,8 +138,8 @@ func TestArgsNoHelp(t *testing.T) {
 	app.Long = "this is a very long description"
 	app.Options.SuppressHelpFlag = true
 
-	app.String("astring", "s", "", "Sets a string value.")
-	app.Int("aint", "i", 0, "Sets a int value.")
+	app.String("astring", 's', "", "Sets a string value.")
+	app.Int("aint", 'i', 0, "Sets a int value.")
 
 	if err := compareHelpOutput(app, []string{}, "testdata/nohelp.golden"); err != nil {
 		t.Error(err)
@@ -150,8 +150,8 @@ func TestDefault(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "Sets a string value.")
-	app.Int("aint", "i", 100, "Sets a int value.")
+	app.String("astring", 's', "somevalue", "Sets a string value.")
+	app.Int("aint", 'i', 100, "Sets a int value.")
 
 	if err := compareHelpOutput(app, []string{"-h"}, "testdata/default.golden"); err != nil {
 		t.Error(err)
@@ -174,8 +174,8 @@ func TestCommandArgs(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "Sets a string value.")
-	app.Int("aint", "i", 100, "Sets a int value.")
+	app.String("astring", 's', "somevalue", "Sets a string value.")
+	app.Int("aint", 'i', 100, "Sets a int value.")
 
 	app.Command("add", "Sums two numbers.", nil)
 	app.Command("sub", "Subtract two numbers.", nil)
@@ -189,8 +189,8 @@ func TestSubcommand(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", 's', "somevalue", "sets a string value")
+	app.Int("aint", 'i', 100, "sets a int value")
 
 	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
 		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
@@ -206,8 +206,8 @@ func TestSubcommandShallow(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", 's', "somevalue", "sets a string value")
+	app.Int("aint", 'i', 100, "sets a int value")
 
 	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
 		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
@@ -224,8 +224,8 @@ func TestSubcommandShallowOp(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", 's', "somevalue", "sets a string value")
+	app.Int("aint", 'i', 100, "sets a int value")
 
 	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
 		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
@@ -245,8 +245,8 @@ func TestSubcommandShallowOpRepeat(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", 's', "somevalue", "sets a string value")
+	app.Int("aint", 'i', 100, "sets a int value")
 
 	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
 		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
@@ -266,8 +266,8 @@ func TestSubcommandDeep(t *testing.T) {
 	app := libcmd.NewApp("app", "some brief description")
 	app.Long = "this is a very long description"
 
-	app.String("astring", "s", "somevalue", "sets a string value")
-	app.Int("aint", "i", 100, "sets a int value")
+	app.String("astring", 's', "somevalue", "sets a string value")
+	app.Int("aint", 'i', 100, "sets a int value")
 
 	app.Command("add", "Sums two numbers.", func(cmd *libcmd.Cmd) {
 		cmd.Long = "Runs a computation that returns the sum of two specified numbers."
@@ -295,7 +295,7 @@ func TestHelpChoice(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("app", "some brief description")
-		app.Choice(test.choices, "choice", "c", test.defValue, "One of %s.")
+		app.Choice(test.choices, "choice", 'c', test.defValue, "One of %s.")
 
 		if err := compareHelpOutput(app, []string{"-h"}, test.file); err != nil {
 			t.Errorf("Case %d, %v", i, err)
@@ -315,7 +315,7 @@ func TestHelpChoiceTemplate(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("app", "some brief description")
-		app.Choice([]string{"a", "b", "c"}, "choice", "c", "", test.template)
+		app.Choice([]string{"a", "b", "c"}, "choice", 'c', "", test.template)
 
 		if err := compareHelpOutput(app, []string{"-h"}, test.file); err != nil {
 			t.Errorf("Case %d, %v", i, err)

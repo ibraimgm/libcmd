@@ -57,7 +57,7 @@ func TestOpt(t *testing.T) {
 		{cmd: []string{"--no-abool=false"}, abool: true},
 		{cmd: []string{"-s", "foo", "--astring="}},
 		{cmd: []string{"--astring", "--aint", "5"}, astring: "--aint", args: []string{"5"}},
-		{cmd: []string{"-i", "5", "-f32", "3.14", "-f64", "3.1415"}, aint: 5, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-i", "5", "-f", "3.14", "-d", "3.1415"}, aint: 5, afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"--afloat32", "3.14", "--afloat64", "3.1415"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"--afloat32=3.14", "--afloat64=3.1415"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 	}
@@ -65,12 +65,12 @@ func TestOpt(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		abool := app.Bool("abool", "b", false, "specifies a bool value")
-		aint := app.Int("aint", "i", 0, "specifies an int value")
-		auint := app.Uint("auint", "u", 0, "specifies an uint value")
-		astring := app.String("astring", "s", "", "specifies a string value")
-		afloat32 := app.Float32("afloat32", "f32", 0, "specifies a float32 value")
-		afloat64 := app.Float64("afloat64", "f64", 0, "specifies a float64 value")
+		abool := app.Bool("abool", 'b', false, "specifies a bool value")
+		aint := app.Int("aint", 'i', 0, "specifies an int value")
+		auint := app.Uint("auint", 'u', 0, "specifies an uint value")
+		astring := app.String("astring", 's', "", "specifies a string value")
+		afloat32 := app.Float32("afloat32", 'f', 0, "specifies a float32 value")
+		afloat64 := app.Float64("afloat64", 'd', 0, "specifies a float64 value")
 
 		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -87,6 +87,50 @@ func TestOpt(t *testing.T) {
 	}
 }
 
+func TestOptBool(t *testing.T) {
+	tests := []struct {
+		cmd           []string
+		a             bool
+		b             bool
+		c             bool
+		s             string
+		expectedError string
+	}{
+		{cmd: []string{"-abc"}, a: true, b: true, c: true},
+		{cmd: []string{"-abcs", "foo"}, a: true, b: true, c: true, s: "foo"},
+		{cmd: []string{"-ab", "-c"}, a: true, b: true, c: true},
+		{cmd: []string{"-ab", "-bc"}, a: true, b: true, c: true},
+		{cmd: []string{"-absc", "foo"}, a: true, b: true, expectedError: "unknown argument: -absc"},
+		{cmd: []string{"-absc"}, a: true, b: true, expectedError: "unknown argument: -absc"},
+		{cmd: []string{"-ab", "-x"}, a: true, b: true, expectedError: "unknown argument: -x"},
+		{cmd: []string{"-abcs"}, a: true, b: true, c: true, expectedError: "no value for argument: -s"},
+	}
+
+	for i, test := range tests {
+		app := libcmd.NewApp("app", "")
+		a := app.Bool("", 'a', false, "")
+		b := app.Bool("", 'b', false, "")
+		c := app.Bool("", 'c', false, "")
+		s := app.String("", 's', "", "")
+
+		err := app.ParseArgs(test.cmd)
+		if err != nil && err.Error() != test.expectedError {
+			t.Errorf("Case %d, error parsing args: %v", i, err)
+			continue
+		}
+
+		if err == nil && test.expectedError != "" {
+			t.Errorf("Case %d, expected error but none found", i)
+			continue
+		}
+
+		compareValue(t, i, test.a, *a)
+		compareValue(t, i, test.b, *b)
+		compareValue(t, i, test.c, *c)
+		compareValue(t, i, test.s, *s)
+	}
+}
+
 func TestOptDefault(t *testing.T) {
 	tests := []struct {
 		cmd      []string
@@ -99,12 +143,12 @@ func TestOptDefault(t *testing.T) {
 		args     []string
 	}{
 		{cmd: []string{}, abool: true, aint: 8, auint: 16, afloat32: float32(3.14), afloat64: float64(3.1415), astring: "default"},
-		{cmd: []string{"-b", "-i", "5", "-u", "9", "-s", "foo", "-f32", "5.5", "-f64", "5.555"}, abool: true, aint: 5, auint: 9, astring: "foo", afloat32: float32(5.5), afloat64: float64(5.555)},
+		{cmd: []string{"-b", "-i", "5", "-u", "9", "-s", "foo", "-f", "5.5", "-d", "5.555"}, abool: true, aint: 5, auint: 9, astring: "foo", afloat32: float32(5.5), afloat64: float64(5.555)},
 		{cmd: []string{"--abool", "--aint", "5", "--auint", "9", "--astring", "foo", "--afloat32", "5.5", "--afloat64", "5.555"}, abool: true, aint: 5, auint: 9, astring: "foo", afloat32: float32(5.5), afloat64: float64(5.555)},
 		{cmd: []string{"--aint=5", "--astring=foo"}, abool: true, aint: 5, auint: 16, astring: "foo", afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"-b", "--abool=false"}, aint: 8, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"-b", "--no-abool"}, aint: 8, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
-		{cmd: []string{"-i", "5", "--aint", "6", "-i", "7", "-f32", "5.5", "--afloat32", "3.14"}, abool: true, aint: 7, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-i", "5", "--aint", "6", "-i", "7", "-f", "5.5", "--afloat32", "3.14"}, abool: true, aint: 7, auint: 16, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"-u", "5", "--auint", "6", "-u", "7"}, abool: true, aint: 8, auint: 7, astring: "default", afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"-b", "-i", "5", "foo", "bar"}, abool: true, aint: 5, auint: 16, astring: "default", args: []string{"foo", "bar"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"foo", "bar"}, abool: true, aint: 8, auint: 16, astring: "default", args: []string{"foo", "bar"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
@@ -118,12 +162,12 @@ func TestOptDefault(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		abool := app.Bool("abool", "b", true, "specifies a bool value")
-		aint := app.Int("aint", "i", 8, "specifies an int value")
-		auint := app.Uint("auint", "u", 16, "specifies an uint value")
-		astring := app.String("astring", "s", "default", "specifies a string value")
-		afloat32 := app.Float32("afloat32", "f32", float32(3.14), "specifies a float32 value")
-		afloat64 := app.Float64("afloat64", "f64", float64(3.1415), "specifies a float64 value")
+		abool := app.Bool("abool", 'b', true, "specifies a bool value")
+		aint := app.Int("aint", 'i', 8, "specifies an int value")
+		auint := app.Uint("auint", 'u', 16, "specifies an uint value")
+		astring := app.String("astring", 's', "default", "specifies a string value")
+		afloat32 := app.Float32("afloat32", 'f', float32(3.14), "specifies a float32 value")
+		afloat64 := app.Float64("afloat64", 'd', float64(3.1415), "specifies a float64 value")
 
 		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -165,10 +209,10 @@ func TestOptError(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		app.Bool("abool", "b", false, "specifies a bool value")
-		app.Int("aint", "i", 0, "specifies an int value")
-		app.Uint("auint", "u", 0, "specifies an uint value")
-		app.String("astring", "s", "", "specifies a string value")
+		app.Bool("abool", 'b', false, "specifies a bool value")
+		app.Int("aint", 'i', 0, "specifies an int value")
+		app.Uint("auint", 'u', 0, "specifies an uint value")
+		app.String("astring", 's', "", "specifies a string value")
 
 		err := app.ParseArgs(test.cmd)
 
@@ -204,10 +248,10 @@ func TestOptIntLimit(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		a := app.Int8("", "a", 0, "specifies a int8 value")
-		b := app.Int16("", "b", 0, "specifies a int16 value")
-		c := app.Int32("", "c", 0, "specifies a int32 value")
-		d := app.Int64("", "d", 0, "specifies a int64 value")
+		a := app.Int8("", 'a', 0, "specifies a int8 value")
+		b := app.Int16("", 'b', 0, "specifies a int16 value")
+		c := app.Int32("", 'c', 0, "specifies a int32 value")
+		d := app.Int64("", 'd', 0, "specifies a int64 value")
 
 		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -238,10 +282,10 @@ func TestOptUintLimit(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		a := app.Uint8("", "a", 0, "specifies a uint8 value")
-		b := app.Uint16("", "b", 0, "specifies a uint16 value")
-		c := app.Uint32("", "c", 0, "specifies a uint32 value")
-		d := app.Uint64("", "d", 0, "specifies a uint64 value")
+		a := app.Uint8("", 'a', 0, "specifies a uint8 value")
+		b := app.Uint16("", 'b', 0, "specifies a uint16 value")
+		c := app.Uint32("", 'c', 0, "specifies a uint32 value")
+		d := app.Uint64("", 'd', 0, "specifies a uint64 value")
 
 		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -277,14 +321,14 @@ func TestOptIntegerLimits(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		app.Int8("aint8", "", 0, "specifies a int8 value")
-		app.Int16("aint16", "", 0, "specifies a int16 value")
-		app.Int32("aint32", "", 0, "specifies a int32 value")
-		app.Int64("aint64", "", 0, "specifies a int64 value")
-		app.Uint8("auint8", "", 0, "specifies a uint8 value")
-		app.Uint16("auint16", "", 0, "specifies a uint16 value")
-		app.Uint32("auint32", "", 0, "specifies a uint32 value")
-		app.Uint64("auint64", "", 0, "specifies a uint64 value")
+		app.Int8("aint8", 0, 0, "specifies a int8 value")
+		app.Int16("aint16", 0, 0, "specifies a int16 value")
+		app.Int32("aint32", 0, 0, "specifies a int32 value")
+		app.Int64("aint64", 0, 0, "specifies a int64 value")
+		app.Uint8("auint8", 0, 0, "specifies a uint8 value")
+		app.Uint16("auint16", 0, 0, "specifies a uint16 value")
+		app.Uint32("auint32", 0, 0, "specifies a uint32 value")
+		app.Uint64("auint64", 0, 0, "specifies a uint64 value")
 
 		err := app.ParseArgs(test.cmd)
 
@@ -312,24 +356,24 @@ func TestOptKeepValue(t *testing.T) {
 		s2  string
 	}{
 		{cmd: []string{}, s1: keep, s2: "default"},
-		{cmd: []string{"-s1", "a"}, s1: "a", s2: "default"},
+		{cmd: []string{"-x", "a"}, s1: "a", s2: "default"},
 		{cmd: []string{"--string1", "a"}, s1: "a", s2: "default"},
 		{cmd: []string{"--string1=a"}, s1: "a", s2: "default"},
 		{cmd: []string{"--string1="}, s1: "", s2: "default"},
-		{cmd: []string{"-s2", "x"}, s1: keep, s2: "x"},
+		{cmd: []string{"-y", "x"}, s1: keep, s2: "x"},
 		{cmd: []string{"--string2", "x"}, s1: keep, s2: "x"},
 		{cmd: []string{"--string2=x"}, s1: keep, s2: "x"},
 		{cmd: []string{"--string2="}, s1: keep, s2: ""},
-		{cmd: []string{"-s1", "a", "-s2", "x"}, s1: "a", s2: "x"},
-		{cmd: []string{"--string1=", "-s2", "x"}, s1: "", s2: "x"},
-		{cmd: []string{"-s1", "a", "-s2", "x", "--string1="}, s1: "", s2: "x"},
+		{cmd: []string{"-x", "a", "-y", "x"}, s1: "a", s2: "x"},
+		{cmd: []string{"--string1=", "-y", "x"}, s1: "", s2: "x"},
+		{cmd: []string{"-x", "a", "-y", "x", "--string1="}, s1: "", s2: "x"},
 	}
 
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		s1 := app.String("string1", "s1", "", "")
-		s2 := app.String("string2", "s2", "default", "")
+		s1 := app.String("string1", 'x', "", "")
+		s2 := app.String("string2", 'y', "default", "")
 
 		*s1 = keep
 		*s2 = ""
@@ -359,7 +403,7 @@ func TestChoice(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
-		s := app.Choice([]string{"foo", "bar", "baz"}, "", "c", "default", "")
+		s := app.Choice([]string{"foo", "bar", "baz"}, "", 'c', "default", "")
 
 		err := app.ParseArgs(test.cmd)
 		if test.expectErr == "" && err != nil {
@@ -408,7 +452,7 @@ func TestOperand(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 		app.Options.StrictOperands = test.strict
-		s := app.String("", "s", "", "")
+		s := app.String("", 's', "", "")
 		app.AddOperand("name", "")
 
 		err := app.ParseArgs(test.cmd)
@@ -463,7 +507,7 @@ func TestOperandOptional(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 		app.Options.StrictOperands = test.strict
-		s := app.String("", "s", "", "")
+		s := app.String("", 's', "", "")
 		app.AddOperand("name", "")
 		app.AddOperand("value", "?")
 

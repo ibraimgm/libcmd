@@ -34,7 +34,7 @@ func TestGet(t *testing.T) {
 		{cmd: []string{"--no-abool=false"}, abool: true},
 		{cmd: []string{"-s", "foo", "--astring="}},
 		{cmd: []string{"--astring", "--aint", "5"}, astring: "--aint", args: []string{"5"}},
-		{cmd: []string{"-i", "5", "-f32", "3.14", "-f64", "3.1415"}, aint: 5, afloat32: float32(3.14), afloat64: float64(3.1415)},
+		{cmd: []string{"-i", "5", "-f", "3.14", "-d", "3.1415"}, aint: 5, afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"--afloat32", "3.14", "--afloat64", "3.1415"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 		{cmd: []string{"--afloat32=3.14", "--afloat64=3.1415"}, afloat32: float32(3.14), afloat64: float64(3.1415)},
 	}
@@ -42,12 +42,12 @@ func TestGet(t *testing.T) {
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
 
-		app.Bool("abool", "b", false, "specifies a bool value")
-		app.Int("aint", "i", 0, "specifies an int value")
-		app.Uint("auint", "u", 0, "specifies an uint value")
-		app.String("astring", "s", "", "specifies a string value")
-		app.Float32("afloat32", "f32", 0, "specifies a float32 value")
-		app.Float64("afloat64", "f64", 0, "specifies a float64 value")
+		app.Bool("abool", 'b', false, "specifies a bool value")
+		app.Int("aint", 'i', 0, "specifies an int value")
+		app.Uint("auint", 'u', 0, "specifies an uint value")
+		app.String("astring", 's', "", "specifies a string value")
+		app.Float32("afloat32", 'f', 0, "specifies a float32 value")
+		app.Float64("afloat64", 'd', 0, "specifies a float64 value")
 
 		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -97,14 +97,14 @@ func TestGetIntLimit(t *testing.T) {
 		app := libcmd.NewApp("", "")
 		app.Options.SuppressHelpFlag = true
 
-		app.Int8("", "a", 0, "specifies a int8 value")
-		app.Int16("", "b", 0, "specifies a int16 value")
-		app.Int32("", "c", 0, "specifies a int32 value")
-		app.Int64("", "d", 0, "specifies a int64 value")
-		app.Uint8("", "e", 0, "specifies a uint8 value")
-		app.Uint16("", "f", 0, "specifies a uint16 value")
-		app.Uint32("", "g", 0, "specifies a uint32 value")
-		app.Uint64("", "h", 0, "specifies a uint64 value")
+		app.Int8("", 'a', 0, "specifies a int8 value")
+		app.Int16("", 'b', 0, "specifies a int16 value")
+		app.Int32("", 'c', 0, "specifies a int32 value")
+		app.Int64("", 'd', 0, "specifies a int64 value")
+		app.Uint8("", 'e', 0, "specifies a uint8 value")
+		app.Uint16("", 'f', 0, "specifies a uint16 value")
+		app.Uint32("", 'g', 0, "specifies a uint32 value")
+		app.Uint64("", 'h', 0, "specifies a uint64 value")
 
 		if err := app.ParseArgs(test.cmd); err != nil {
 			t.Errorf("Case %d, error parsing args: %v", i, err)
@@ -146,7 +146,7 @@ func TestGetChoice(t *testing.T) {
 
 	for i, test := range tests {
 		app := libcmd.NewApp("", "")
-		app.Choice([]string{"foo", "bar", "baz"}, "", "c", "", "")
+		app.Choice([]string{"foo", "bar", "baz"}, "", 'c', "", "")
 
 		err := app.ParseArgs(test.cmd)
 		if !test.expectErr && err != nil {
